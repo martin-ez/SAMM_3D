@@ -1,0 +1,90 @@
+#Player
+{
+  padding: 1vw;
+}
+
+#Player .SongInfo h2
+{
+  color: #181818;
+  width: 100%;
+  display: inline;
+}
+
+#Player .SongInfo h1
+{
+  color: #E5E5E5;
+  display: inline;
+}
+
+#Player .Chords
+{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 1vw;
+  margin: 1vw;
+}
+
+#Player .chord
+{
+  border-radius: 5%;
+  background-color: #181818;
+}
+
+#Player .chord.active
+{
+  background-color: #E5E5E5;
+}
+
+#Player .chord h2
+{
+  color: #E5E5E5;
+  width: 100%;
+  text-align: center;
+}
+
+#Player .chord.active h2
+{
+  color: #181818;
+  width: 100%;
+  text-align: center;
+}
+
+#Player .buttons
+{
+  width: 10vw;
+  height: 20vh;
+  position: absolute;
+  top: 1vw;
+  right: 1vw;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  grid-gap: 1vw;
+  text-align: center;
+}
+
+#Player button
+{
+  position: relative;
+  top: 0;
+  background-color: #E5E5E5;
+  border-top: 3px solid #808080;
+  cursor: pointer;
+}
+
+#Player button h2
+{
+  font-size: 2vh;
+  width: 100%;
+  text-align: center;
+}
+
+#Player .saveButton.inactive
+{
+  background-color: transparent;
+  border: 1px solid #181818;
+}
+
+#Player .saveButton:not(.inactive)
+{
+
+}

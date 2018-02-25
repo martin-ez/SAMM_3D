@@ -1,0 +1,30 @@
+#Drums
+{
+  padding: 1vw;
+}
+
+#DrumsModule
+{
+  width: 100%;
+  height: 100%;
+}
+
+#DrumsModule .pad
+{
+  cursor: pointer;
+}
+
+#DrumsModule .pad:not(.active):hover
+{
+  fill: #A0101A;
+}
+
+#DrumsModule .pad.active:hover
+{
+  fill: #282828;
+}
+
+#DrumsModule .control:not(.active)
+{
+  cursor: pointer;
+}

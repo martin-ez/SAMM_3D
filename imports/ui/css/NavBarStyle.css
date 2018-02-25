@@ -1,0 +1,40 @@
+#NavBar
+{
+  position: absolute;
+  top: 0;
+  width: 25vw;
+  height: 100vh;
+  background-color: #181818;
+  z-index: 50;
+}
+
+#NavBar.close
+{
+  transition: 0.5s;
+  left: -25vw;
+}
+
+#NavBar.open
+{
+  transition: 0.5s;
+  left: 0;
+}
+
+#NavBar .icon
+{
+  cursor: pointer;
+  position: relative;
+  top: 0;
+  left: 100%;
+  width: 7vw;
+  padding: 0.5vw;
+  background-color: #181818;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  align-items: center;
+}
+
+#NavBar .icon img
+{
+  width: 100%;
+}

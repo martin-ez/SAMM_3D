@@ -1,0 +1,14 @@
+.controls .bar:not(.active)
+{
+  cursor: pointer;
+}
+
+.pads .pad
+{
+  cursor: pointer;
+}
+
+.pads .pad:not(.active):hover
+{
+  stroke: rgba(24, 24, 24, 0.5);
+}
