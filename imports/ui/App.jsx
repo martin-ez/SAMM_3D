@@ -6,6 +6,8 @@ import {Session} from 'meteor/session';
 import {withTracker} from 'meteor/react-meteor-data';
 import {SessionDB} from '../api/Session.js';
 
+import SongGenerator from '../engines/sound/SongGenerator.js';
+
 import Home from './Home.jsx';
 import Room from './Room.jsx';
 
@@ -84,7 +86,6 @@ class App extends Component {
         }
       }
       if (!end) {
-        import SongGenerator from '../core/SongGenerator.js';
         var songGenerator = new SongGenerator();
         var song = songGenerator.CreateNewSong();
         var noUsers = 1;

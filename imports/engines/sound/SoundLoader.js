@@ -3,7 +3,7 @@ function SoundLoader(context) {
 }
 
 SoundLoader.prototype.loadDrumsBuffer = function(callback) {
-  var DrumsSounds = require('../sounds/DrumsSounds.js');
+  var DrumsSounds = require('./sounds/DrumsSounds.js');
   var Binary64Binary = require('./base64-binary.js');
   var sources = [];
   sources.push(DrumsSounds.default.kick);

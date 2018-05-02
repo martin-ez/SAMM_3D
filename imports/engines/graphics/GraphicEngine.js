@@ -1,13 +1,14 @@
 let graphicInstance = null;
-import {context, program, uniform, texture, attribute} from 'gl-util';
+import Utils from './WebGL-Utils.js';
 import OBJ from 'webgl-obj-loader';
 import {mat4, vec3, quat} from 'gl-matrix';
+import ShaderFactory from './ShaderFactory.js';
 
 export default class GraphicEngine {
-  constructor(canvas) {
+  constructor() {
     if (!graphicInstance) {
       graphicInstance = this;
-      this.gl = context({canvas, preserveDrawingBuffer: false});
+      this.gl = null;
       this.origin = new Entity();
       this.entities = [];
       this.light = [];
@@ -20,8 +21,13 @@ export default class GraphicEngine {
     return graphicInstance;
   }
 
+  SetContext(canvas) {
+    this.gl = Utils.GetContext(canvas);
+  }
+
   CreateScene(instrument) {
-    
+    var shaderProgram = ShaderFactory.GetSimpleShaderInfo(this.gl);
+    console.log(shaderProgram);
   }
 
   CanvasDimensions(w, h) {
@@ -121,7 +127,8 @@ class Entity {
   }
 
   Translate(x, y, z) {
-    vec3.add(this.transform.position, this.transform.position, vec3.fromValues(x, y, z));
+    vec3.add(this.transform.position, this.transform.position,
+      vec3.fromValues(x, y, z));
   }
 
   Rotate(deg, axis) {
@@ -140,7 +147,8 @@ class Entity {
   }
 
   Scale(x, y, z) {
-    vec3.add(this.transform.scale, this.transform.scale, vec3.fromValues(x, y, z));
+    vec3.add(this.transform.scale, this.transform.scale,
+      vec3.fromValues(x, y, z));
   }
 
   SetParent(parent) {
@@ -157,7 +165,10 @@ class Entity {
   }
 
   Update(parentWorldMatrix) {
-    mat4.fromRotationTranslationScale(this.localMatrix, this.transform.rotation, this.transform.position, this.transform.scale);
+    mat4.fromRotationTranslationScale(this.localMatrix,
+      this.transform.rotation,
+      this.transform.position,
+      this.transform.scale);
 
     if (parentWorldMatrix) {
       mat4.multiply(this.worldMatrix, parentWorldMatrix, this.localMatrix);
@@ -208,7 +219,8 @@ class Camera {
 
   GetViewMatrix() {
     if(this.viewNeedsUpdate) {
-      mat4.lookAt(this.viewMatrix, this.position, this.target, vec3.fromValues(0.0, 1.0, 0.0));
+      mat4.lookAt(this.viewMatrix, this.position,
+        this.target, vec3.fromValues(0.0, 1.0, 0.0));
       mat4.invert(this.viewMatrix, this.viewMatrix);
       this.viewNeedsUpdate = false;
     }

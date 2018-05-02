@@ -1,8 +1,8 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
-import SoundEngine from '../core/SoundEngine.js';
-import GraphicEngine from '../core/GraphicEngine.js';
+import SoundEngine from '../engines/sound/SoundEngine.js';
+import GraphicEngine from '../engines/graphics/GraphicEngine.js';
 
 import InstrumentSelect from './InstrumentSelect.jsx';
 
@@ -16,7 +16,7 @@ class Room extends Component {
       view: 'InstrumentSelect',
       instrument: '',
       soundEngine: new SoundEngine(props.song),
-      graphicEngine: null,
+      graphicEngine: new GraphicEngine(),
       beat: -1,
       bar: 0,
       playing: false
@@ -61,16 +61,13 @@ class Room extends Component {
         this.setState({beat: currentBeat, bar: currentBar});
       }
     }, tInterval);
-    if(this.state.view === 'Scene' && !this.state.graphicEngine) {
-      this.setState({
-        graphicEngine: new GraphicEngine(this.canvasRef.current)
-      }, () => {
-        this.state.graphicEngine.CreateScene(this.state.instrument);
-        this.state.graphicEngine.DrawScene();
-      });
-    }
-    else {
+  }
+
+  componentDidUpdate() {
+    if(this.state.view === 'Scene' && !this.state.graphicEngine.gl) {
       this.updateWindowDimensions();
+      this.state.graphicEngine.SetContext(this.canvasRef.current);
+      this.state.graphicEngine.CreateScene();
     }
   }
 

@@ -56,8 +56,8 @@ class Home extends Component {
             <h2>How can I use it?</h2>
             <br/>
             <p>
-              Click the "Make Music" button to start creating. You can also log in
-              to be able to save songs.
+              Click the "Make Music" button to start creating. Choose your
+              favorite instrument and create a pattern in your sequencer.
             </p>
           </span>
         </div>

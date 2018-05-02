@@ -9,7 +9,6 @@
     "animals": "0.0.3",
     "babel-runtime": "^6.26.0",
     "gl-matrix": "^2.5.1",
-    "gl-util": "^2.0.0",
     "meteor-node-stubs": "^0.3.3",
     "octavian": "^2.2.0",
     "react": "^16.3.2",
