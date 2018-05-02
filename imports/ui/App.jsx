@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import {Meteor} from 'meteor/meteor';
 import {Session} from 'meteor/session';
-import {createContainer} from 'meteor/react-meteor-data';
+import {withTracker} from 'meteor/react-meteor-data';
 import {SessionDB} from '../api/Session.js';
 
 import Home from './Home.jsx';
@@ -15,7 +15,7 @@ class App extends Component {
     this.UserLeaving = this.UserLeaving.bind(this);
     window.addEventListener('beforeunload', this.UserLeaving);
     this.state = {
-      view: "home",
+      view: 'home',
       sessionSong: null,
       list: [],
       user: null,
@@ -32,7 +32,7 @@ class App extends Component {
 
   render() {
     return (
-      <div className="app">
+      <div className='app'>
         {this.RenderPage()}
       </div>
     );
@@ -181,8 +181,8 @@ App.propTypes = {
   songs: PropTypes.array
 };
 
-export default createContainer(() => {
-  Meteor.subscribe('session');
+export default withTracker(props => {
+  const handle = Meteor.subscribe('session');
   var current = Session.get('currentSong');
   if (current === undefined || current === null) {
     var songsInSession = SessionDB.find({}).fetch();
@@ -197,4 +197,4 @@ export default createContainer(() => {
       songs: null
     };
   }
-}, App);
+})(App);

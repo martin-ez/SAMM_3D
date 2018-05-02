@@ -3,26 +3,13 @@ import PropTypes from 'prop-types';
 
 import './css/HomeStyle.css';
 
-const homeLayoutLarge = {
-  display: 'grid',
-  gridTemplateColumns: '55vw 45vw'
-};
-
 class Home extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      nameInput: false,
-    }
-  }
 
   render() {
-    var MediaQuery = require('react-responsive');
     return (
-      <div id="Home" className="page" style={homeLayoutLarge}>
+      <div id="Home" className="page">
         {this.RenderLogo()}
         {this.RenderText()}
-        {this.state.nameInput?this.RenderNameInput():() =>{return;}}
       </div>
     );
   }
@@ -49,6 +36,7 @@ class Home extends Component {
     this.setState({
       nameInput: true
     });
+    this.props.startSession("FakeName");
   }
 
   RenderText() {
@@ -75,10 +63,6 @@ class Home extends Component {
         </div>
       </div>
     );
-  }
-
-  RenderNameInput() {
-
   }
 }
 

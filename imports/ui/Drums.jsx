@@ -13,19 +13,9 @@ class Drums extends Component {
   }
 
   render() {
-    var MediaQuery = require('react-responsive');
     return (
-      <div>
-        <MediaQuery query='(min-width: 800px)'>
-          <div id="Drums" className="instrumentUILarge">
-            {this.RenderDrums()}
-          </div>
-        </MediaQuery>
-        <MediaQuery query='(max-width: 800px)'>
-          <div id="Drums" className="instrumentUISmall">
-            {this.RenderDrums()}
-          </div>
-        </MediaQuery>
+      <div id="Drums" className="instrumentUILarge">
+        {this.RenderDrums()}
       </div>
     );
   }

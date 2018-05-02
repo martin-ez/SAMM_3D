@@ -1,3 +1,9 @@
+#Home
+{
+  display: grid;
+  grid-template-columns: 55vw 45vw;
+}
+
 #Home .logoBox
 {
   display: flex;

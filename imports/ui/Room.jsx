@@ -2,29 +2,48 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
 import SoundEngine from '../core/SoundEngine.js';
+import GraphicEngine from '../core/GraphicEngine.js';
 
 import InstrumentSelect from './InstrumentSelect.jsx';
-import Player from './Player.jsx';
-import Drums from './Drums.jsx';
-import Bass from './Bass.jsx';
-import Solo from './Solo.jsx';
 
 import './css/RoomStyle.css';
 
 class Room extends Component {
   constructor(props) {
     super(props);
+    this.canvasRef = React.createRef();
     this.state = {
-      view: "InstrumentSelect",
-      instrument: "",
-      engine: new SoundEngine(props.song),
+      view: 'InstrumentSelect',
+      instrument: '',
+      soundEngine: new SoundEngine(props.song),
+      graphicEngine: null,
       beat: -1,
       bar: 0,
       playing: false
     };
+    this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
+  }
+
+  render() {
+    if(this.state.view === 'InstrumentSelect') {
+      return (
+        <InstrumentSelect
+          song={this.props.song}
+          select={(instr) => this.SelectInstrument(instr)}/>
+      );
+    } else {
+      return (
+        <div id='Room'>
+          <canvas ref={this.canvasRef}>
+            This browser don't support WebGL.
+          </canvas>
+        </div>
+      );
+    }
   }
 
   componentDidMount() {
+    window.addEventListener('resize', this.updateWindowDimensions);
     var tInterval = 60000 / (this.props.song.tempo * 4);
     this.interval = setInterval(() => {
       if(this.state.playing) {
@@ -42,27 +61,48 @@ class Room extends Component {
         this.setState({beat: currentBeat, bar: currentBar});
       }
     }, tInterval);
+    if(this.state.view === 'Scene' && !this.state.graphicEngine) {
+      this.setState({
+        graphicEngine: new GraphicEngine(this.canvasRef.current)
+      }, () => {
+        this.state.graphicEngine.CreateScene(this.state.instrument);
+        this.state.graphicEngine.DrawScene();
+      });
+    }
+    else {
+      this.updateWindowDimensions();
+    }
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.updateWindowDimensions);
+  }
+
+  updateWindowDimensions() {
+    if(this.state.graphicEngine) {
+      this.state.graphicEngine.CanvasDimensions(window.innerWidth, window.innerHeight);
+    }
   }
 
   PlaySounds(currentBeat, currentBar) {
     if (currentBeat === 0) {
-      this.state.engine.PlayBGSounds(currentBar);
+      this.state.soundEngine.PlayBGSounds(currentBar);
     }
-    if (this.props.song.drums.user !== "") {
+    if (this.props.song.drums.user !== '') {
       for (var i = 0; i < this.props.song.drums.pattern.length; i++) {
         if (this.props.song.drums.pattern[i][currentBeat] === 'x') {
-          this.state.engine.PlayDrumSound(i);
+          this.state.soundEngine.PlayDrumSound(i);
         }
       }
     }
-    if (this.props.song.bass.user !== "") {
+    if (this.props.song.bass.user !== '') {
       if (this.props.song.bass.pattern[currentBeat] !== '-') {
-        this.state.engine.PlayBassSound(this.props.song.bass.pattern[currentBeat], currentBar);
+        this.state.soundEngine.PlayBassSound(this.props.song.bass.pattern[currentBeat], currentBar);
       }
     }
-    if (this.props.song.solo.user !== "") {
+    if (this.props.song.solo.user !== '') {
       if (currentBeat%2 === 0) {
-        this.state.engine.PlaySoloSound(this.props.song.solo.pattern[currentBar][currentBeat/2]);
+        this.state.soundEngine.PlaySoloSound(this.props.song.solo.pattern[currentBar][currentBeat/2]);
       }
     }
   }
@@ -73,80 +113,10 @@ class Room extends Component {
     this.props.instrument(instrument);
     this.props.update(song);
     this.setState({
-      view: "Instrument",
+      view: 'Scene',
       instrument: instrument,
       playing: true
     });
-  }
-
-  render() {
-    var MediaQuery = require('react-responsive');
-    if(this.state.view === "InstrumentSelect") {
-      return (
-        <InstrumentSelect
-          song={this.props.song}
-          select={(instr) => this.SelectInstrument(instr)}/>
-      );
-    } else {
-      return (
-        <div>
-          <MediaQuery query='(min-width: 800px)'>
-            <div id="Room" className={"page large "+this.state.instrument}>
-              {this.RenderInstrument()}
-              {this.RenderControls()}
-            </div>
-          </MediaQuery>
-          <MediaQuery query='(max-width: 800px)'>
-            <div id="Room" className={"page mobile "+this.state.instrument}>
-              {this.RenderInstrument()}
-              {this.RenderControls()}
-            </div>
-          </MediaQuery>
-        </div>
-      );
-    }
-  }
-
-  RenderInstrument() {
-    switch(this.state.instrument) {
-      case "drums":
-      return (
-        <Drums
-          pattern={this.props.song.drums}
-          beat={this.state.beat}
-          update={(p) => this.UpdatePattern(p, "drums")}/>
-      );
-      break;
-      case "bass":
-      return (
-        <Bass
-          pattern={this.props.song.bass}
-          beat={this.state.beat}
-          update={(p) => this.UpdatePattern(p, "bass")}/>
-      );
-      break;
-      case "keys":
-      break;
-      case "solo":
-      return (
-        <Solo
-          pattern={this.props.song.solo}
-          beat={this.state.beat}
-          update={(p) => this.UpdatePattern(p, "solo")}/>
-      );
-      break;
-    }
-  }
-
-  RenderControls() {
-    return (
-      <Player
-        bar={this.state.bar}
-        song={this.props.song}
-        save={this.props.user!=="Guest"}
-        pause={() => this.PauseSong()}
-        playing={this.state.playing}/>
-    );
   }
 
   UpdatePattern(pattern, instrument) {
@@ -164,11 +134,9 @@ class Room extends Component {
 }
 
 Room.propTypes = {
-  session: PropTypes.bool.isRequired,
   song: PropTypes.object.isRequired,
   user: PropTypes.string.isRequired,
   update: PropTypes.func.isRequired,
-  saveSong: PropTypes.func.isRequired,
   instrument: PropTypes.func.isRequired
 }
 

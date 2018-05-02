@@ -5,53 +5,10 @@ import './css/BassStyle.css';
 
 class Bass extends Component {
   constructor(props) {
+    this.UpdatePattern.bind(this);
     super(props);
     this.handles = [];
     this.bars = [];
-  }
-
-  componentDidMount() {
-    import Draggable from "gsap/Draggable";
-    var update = this.UpdatePattern.bind(this);
-    for (var i = 0; i<this.handles.length; i++) {
-      var top = i<8;
-      var handle = this.handles[i];
-      var bar = this.bars[i];
-      Draggable.create(handle, {
-        type:"y",
-        edgeResistance:1,
-        lockAxis:true,
-        throwProps:true,
-        bounds:bar,
-        onDragEnd: function() {
-          var v = this.endY;
-          var x = 1-((v+12)/24);
-          if(x>=0.937) {
-            x = 1;
-          } else if (x<0.937 && x>=0.812) {
-            x = 0.875;
-          } else if (x<0.812 && x>=0.687) {
-            x = 0.75;
-          } else if (x<0.687 && x>=0.562) {
-            x = 0.625;
-          } else if (x<0.562 && x>=0.437) {
-            x = 0.5;
-          } else if (x<0.437 && x>=0.312) {
-            x = 0.375;
-          } else if (x<0.312 && x>=0.187) {
-            x = 0.25;
-          } else if (x<0.187 && x>=0.062) {
-            x = 0.125;
-          } else if (x<0.062) {
-            x = 0;
-          }
-          var pos = this.target.x.baseVal.value;
-          var top = (pos%10===7);
-          var handle = top?((pos+3)/10)-1:((pos-2)/10)+7;
-          update(x, handle);
-        }
-      });
-    }
   }
 
   UpdatePattern(value, index) {
@@ -61,19 +18,9 @@ class Bass extends Component {
   }
 
   render() {
-    var MediaQuery = require('react-responsive');
     return (
-      <div>
-        <MediaQuery query='(min-width: 800px)'>
-          <div id="Bass" className="instrumentUILarge">
-            {this.RenderBass()}
-          </div>
-        </MediaQuery>
-        <MediaQuery query='(max-width: 800px)'>
-          <div id="Bass" className="instrumentUISmall">
-            {this.RenderBass()}
-          </div>
-        </MediaQuery>
+      <div id="Bass" className="instrumentUILarge">
+        {this.RenderBass()}
       </div>
     );
   }

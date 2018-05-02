@@ -1,8 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
-import {TweenMax, Power2, TimelineLite} from 'gsap';
-
 import './css/InstrumentSelectStyle.css';
 
 class InstrumentSelect extends Component {
@@ -35,8 +33,6 @@ class InstrumentSelect extends Component {
       if(this.props.song[instr].user==="") {
         return (
           <div key={i} className={"instr "+instr}
-            onMouseEnter={() => this.OnMouseEnterAnimation(i)}
-            onMouseLeave={() => this.OnMouseLeaveAnimation(i)}
             onClick={() => this.props.select(instr)}>
             <h2>{instr}</h2>
           </div>
@@ -52,19 +48,6 @@ class InstrumentSelect extends Component {
         );
       }
     });
-  }
-
-  OnMouseEnterAnimation(i) {
-    let target = this.buttons.childNodes[i];
-    let tl = new TimelineLite();
-    tl.set(target, {scaleX: 1, scaleY: 1, transformOrigin: "50% 50%"});
-    tl.to(target, 0.2, {scaleX: 1.2, scaleY: 1.2, ease: Sine.easeInOut});
-  }
-
-  OnMouseLeaveAnimation(i) {
-    let target = this.buttons.childNodes[i];
-    let tl = new TimelineLite();
-    tl.to(target, 0.2, {scaleX: 1, scaleY: 1, ease: Sine.easeInOut});
   }
 }
 

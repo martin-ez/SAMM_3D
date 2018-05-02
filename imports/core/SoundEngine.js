@@ -9,6 +9,10 @@ export default class SoundEngine {
       songInstance = this;
       this.context = new AudioContext();
       this.song = newSong;
+      this.bg = {
+        piano: null,
+        ready: false
+      };
       this.drums = {
         buffers: [],
         sources: [],
@@ -20,11 +24,6 @@ export default class SoundEngine {
         synth: null,
         ready: false
       };
-      this.bg = {
-        piano: null,
-        ready: false
-      };
-      this.keys = {};
       this.solo = {
         synth: null,
         ready: false
