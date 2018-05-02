@@ -60,8 +60,8 @@ export default class GraphicEngine {
 
     //Program Uniforms
     var programUniforms = {
-      'viewMatrix': viewMatrix,
-      'projectionMatrix': projMatrix
+      'u_viewMatrix': viewMatrix,
+      'u_projectionMatrix': projMatrix
     };
 
     //Draw Objects
@@ -69,37 +69,31 @@ export default class GraphicEngine {
     this.entities.forEach(entity => {
 
       //Set program
-      if(entity.program !== lastUsedProgram) {
-        lastUsedProgram = entity.program;
-        program(gl, entity.program);
+      var programInfo = entity.programInfo;
+      if(programInfo!== lastUsedProgram) {
+        lastUsedProgram = programInfo;
+        gl.useProgram(programInfo.program);
       }
 
-      //Set attributes
-      for (var att in entity.attributes) {
-        if (entity.attributes.hasOwnProperty(att)) {
-          attribute(gl, att, entity.attributes[att]);
-        }
-      }
+      //Bind attributes
+      Utils.BindBuffers(gl, programInfo.attributes, entity.buffers);
 
       //Set uniforms
-      for (var uni in programUniforms) {
-        if (programUniforms.hasOwnProperty(uni)) {
-          uniform(gl, uni, programUniforms[uni]);
-        }
-      }
-
-      //Set world matrix
-      unifrom(gl, 'worldMatrix', entity.worldMatrix);
+      Utils.SetUniforms(gl, programInfo.uniforms, entity.uniforms, programUniforms);
 
       //Draw entity
-      gl.drawArrays(gl.TRIANGLES, 0, entity.numElements);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, entity.indices);
+      const vertexCount = entity.indices.length;
+      const type = gl.UNSIGNED_SHORT;
+      const offset = 0;
+      gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
     });
     requestAnimationFrame(DrawScene);
   }
 }
 
 class Entity {
-  constructor(parent) {
+  constructor(parent, programInfo) {
     this.parent = parent;
     this.children = [];
     this.transform = {
@@ -109,7 +103,7 @@ class Entity {
     }
     this.localMatrix = mat4.create();
     this.worldMatrix = mat4.create();
-    this.program = null;
+    this.programInfo = programInfo;
     this.attributes = {};
     this.numElements = 0;
   }

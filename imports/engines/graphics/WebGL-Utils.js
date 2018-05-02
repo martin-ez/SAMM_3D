@@ -56,6 +56,14 @@ export default class Utils {
     return buffers;
   }
 
+  static CreateIndexBuffer(gl, indices) {
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Float16Array(indices),
+      gl.STATIC_DRAW);
+    return buffer;
+  }
+
   static BindBuffers(gl, programAttributes, buffers) {
     for (var att in buffers) {
       if (buffers.hasOwnProperty(att)) {
@@ -72,7 +80,7 @@ export default class Utils {
     }
   }
 
-  static SetUniforms(gl, programUniforms, uniforms) {
+  static SetUniforms(gl, programUniforms, uniforms, otherU) {
     for (var uni in uniforms) {
       if (uniforms.hasOwnProperty(uni)) {
         switch (programUniforms[uni]['type']) {
@@ -90,6 +98,28 @@ export default class Utils {
             break;
           case 'matrix4':
             gl.uniformMatrix4fv(programUniforms[uni]['location'], uniforms[uni]);
+            break;
+        }
+      }
+    }
+
+    for (var uni in otherU) {
+      if (otherU.hasOwnProperty(uni)) {
+        switch (programUniforms[uni]['type']) {
+          case 'float':
+            gl.uniform1f(programUniforms[uni]['location'], otherU[uni]);
+            break;
+          case 'vec2':
+            gl.uniform2fv(programUniforms[uni]['location'], otherU[uni]);
+            break;
+          case 'vec3':
+            gl.uniform3fv(programUniforms[uni]['location'], otherU[uni]);
+            break;
+          case 'vec4':
+            gl.uniform4fv(programUniforms[uni]['location'], otherU[uni]);
+            break;
+          case 'matrix4':
+            gl.uniformMatrix4fv(programUniforms[uni]['location'], otherU[uni]);
             break;
         }
       }
