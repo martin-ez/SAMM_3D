@@ -59,7 +59,7 @@ export default class Utils {
   static CreateIndexBuffer(gl, indices) {
     const buffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Float16Array(indices),
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices),
       gl.STATIC_DRAW);
     return buffer;
   }
@@ -67,14 +67,14 @@ export default class Utils {
   static BindBuffers(gl, programAttributes, buffers) {
     for (var att in buffers) {
       if (buffers.hasOwnProperty(att)) {
-        const numComponents = programAttributes['numComponents'];
-        const type = programAttributes['type'];
+        const location = programAttributes[att]['location'];
+        const numComponents = programAttributes[att]['numComponents'];
+        const type = programAttributes[att]['type'];
         const normalize = false;
         const stride = 0;
         const offset = 0;
         gl.bindBuffer(gl.ARRAY_BUFFER, buffers[att]);
-        gl.vertexAttribPointer(programAttributes[att]['location'],
-          numComponents, type, normalize, stride, offset);
+        gl.vertexAttribPointer(location, numComponents, type, normalize, stride, offset);
         gl.enableVertexAttribArray(programAttributes[att]['location']);
       }
     }
@@ -97,7 +97,7 @@ export default class Utils {
             gl.uniform4fv(programUniforms[uni]['location'], uniforms[uni]);
             break;
           case 'matrix4':
-            gl.uniformMatrix4fv(programUniforms[uni]['location'], uniforms[uni]);
+            gl.uniformMatrix4fv(programUniforms[uni]['location'], false, uniforms[uni]);
             break;
         }
       }
@@ -119,7 +119,7 @@ export default class Utils {
             gl.uniform4fv(programUniforms[uni]['location'], otherU[uni]);
             break;
           case 'matrix4':
-            gl.uniformMatrix4fv(programUniforms[uni]['location'], otherU[uni]);
+            gl.uniformMatrix4fv(programUniforms[uni]['location'], false, otherU[uni]);
             break;
         }
       }

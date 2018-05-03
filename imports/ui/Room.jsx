@@ -11,6 +11,7 @@ import './css/RoomStyle.css';
 class Room extends Component {
   constructor(props) {
     super(props);
+    this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
     this.canvasRef = React.createRef();
     this.state = {
       view: 'InstrumentSelect',
@@ -21,7 +22,6 @@ class Room extends Component {
       bar: 0,
       playing: false
     };
-    this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
   }
 
   render() {
@@ -68,6 +68,7 @@ class Room extends Component {
       this.updateWindowDimensions();
       this.state.graphicEngine.SetContext(this.canvasRef.current);
       this.state.graphicEngine.CreateScene();
+      this.state.graphicEngine.DrawScene();
     }
   }
 

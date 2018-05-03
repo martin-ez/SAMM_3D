@@ -1,6 +1,7 @@
 let graphicInstance = null;
 import Utils from './WebGL-Utils.js';
 import OBJ from 'webgl-obj-loader';
+import PrimitiveTorus from 'primitive-torus';
 import {mat4, vec3, quat} from 'gl-matrix';
 import ShaderFactory from './ShaderFactory.js';
 
@@ -12,12 +13,13 @@ export default class GraphicEngine {
       this.origin = new Entity();
       this.entities = [];
       this.light = [];
-      this.camera = new Camera(60, 1.0);
+      this.camera = new Camera(60.0, 1.0);
       this.size = {
         width: 0,
         height: 0
       };
     }
+    this.DrawScene = this.DrawScene.bind(this);
     return graphicInstance;
   }
 
@@ -26,8 +28,25 @@ export default class GraphicEngine {
   }
 
   CreateScene(instrument) {
+    this.camera.SetTarget(0.0, 0.0, 0.0);
+    this.camera.SetPosition(0.0, 5.0, 0.0);
+    /*switch (instrument) {
+      case 'drums':
+        this.camera.SetPosition(-2.0, 5.0, 0);
+        break;
+      case 'bass':
+        this.camera.SetPosition(-1.0, 5.0, -1.0);
+        break;
+      case 'solo':
+        this.camera.SetPosition(0.0, 5.0, -2.0);
+        break;
+    }*/
     var shaderProgram = ShaderFactory.GetSimpleShaderInfo(this.gl);
-    console.log(shaderProgram);
+    var mesh = PrimitiveTorus();
+    var torus = new Entity(this.origin);
+    torus.Initialize(this.gl, shaderProgram, mesh, [0.0, 0.0, 0.0]);
+    torus.SetPosition(0.0,-1.0,0.0);
+    this.entities.push(torus);
   }
 
   CanvasDimensions(w, h) {
@@ -40,16 +59,14 @@ export default class GraphicEngine {
   }
 
   DrawScene() {
-    var gl = this.gl;
-
     //Prepare context
-    gl.canvas.width = this.size.width;
-    gl.canvas.height = this.size.height;
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    gl.enable(gl.CULL_FACE);
-    gl.enable(gl.DEPTH_TEST);
-    gl.clearColor(1, 1, 1, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    this.gl.canvas.width = this.size.width;
+    this.gl.canvas.height = this.size.height;
+    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+    this.gl.enable(this.gl.CULL_FACE);
+    this.gl.enable(this.gl.DEPTH_TEST);
+    this.gl.clearColor(1, 1, 1, 1);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
     //Update entities
     this.origin.Update();
@@ -61,39 +78,40 @@ export default class GraphicEngine {
     //Program Uniforms
     var programUniforms = {
       'u_viewMatrix': viewMatrix,
-      'u_projectionMatrix': projMatrix
+      'u_projectionMatrix': projMatrix,
+      'u_lightDirection': [0.0, -1.0, 1.0],
+      'u_ambientFactor': 0.6,
     };
 
     //Draw Objects
     var lastUsedProgram = null;
     this.entities.forEach(entity => {
-
       //Set program
       var programInfo = entity.programInfo;
       if(programInfo!== lastUsedProgram) {
         lastUsedProgram = programInfo;
-        gl.useProgram(programInfo.program);
+        this.gl.useProgram(programInfo.program);
       }
 
       //Bind attributes
-      Utils.BindBuffers(gl, programInfo.attributes, entity.buffers);
+      Utils.BindBuffers(this.gl, programInfo.attributes, entity.buffers);
 
       //Set uniforms
-      Utils.SetUniforms(gl, programInfo.uniforms, entity.uniforms, programUniforms);
+      Utils.SetUniforms(this.gl, programInfo.uniforms, entity.GetUniforms(), programUniforms);
 
       //Draw entity
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, entity.indices);
-      const vertexCount = entity.indices.length;
-      const type = gl.UNSIGNED_SHORT;
+      this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, entity.indexBuffer);
+      const vertexCount = entity.numComponents;
+      const type = this.gl.UNSIGNED_SHORT;
       const offset = 0;
-      gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+      this.gl.drawElements(this.gl.TRIANGLES, vertexCount, type, offset);
     });
-    requestAnimationFrame(DrawScene);
+    requestAnimationFrame(this.DrawScene);
   }
 }
 
 class Entity {
-  constructor(parent, programInfo) {
+  constructor(parent) {
     this.parent = parent;
     this.children = [];
     this.transform = {
@@ -103,9 +121,14 @@ class Entity {
     }
     this.localMatrix = mat4.create();
     this.worldMatrix = mat4.create();
+  }
+
+  Initialize(gl, programInfo, mesh, color) {
     this.programInfo = programInfo;
-    this.attributes = {};
-    this.numElements = 0;
+    this.meshColor = color;
+    if(mesh) {
+      this.ProcessMesh(gl, mesh);
+    }
   }
 
   SetPosition(x, y, z) {
@@ -175,6 +198,26 @@ class Entity {
       child.Update(worldMatrix);
     });
   }
+
+  ProcessMesh(gl, mesh) {
+    var attributes = {
+      'a_position': mesh.positions.flatten(),
+      'a_normal': mesh.normals.flatten(),
+    };
+    this.buffers = Utils.CreateAttributesBuffers(gl, attributes);
+
+    var indices = mesh.cells.flatten();
+    this.numComponents = indices.length;
+    this.indexBuffer = Utils.CreateIndexBuffer(gl, indices);
+  }
+
+  GetUniforms() {
+    var uniforms = {
+      'u_worldMatrix': this.worldMatrix,
+      'u_diffuseColor': this.meshColor,
+    }
+    return uniforms;
+  }
 }
 
 class Light {}
@@ -192,12 +235,12 @@ class Camera {
   }
 
   SetPosition(x, y, z) {
-    this.transform.position = vec3.fromValues(x, y, z);
+    this.position = vec3.fromValues(x, y, z);
     this.viewNeedsUpdate = true;
   }
 
   SetTarget(x, y, z) {
-    this.transform.target = vec3.fromValues(x, y, z);
+    this.target = vec3.fromValues(x, y, z);
     this.viewNeedsUpdate = true;
   }
 

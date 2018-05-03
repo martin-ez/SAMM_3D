@@ -15,7 +15,6 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.UserLeaving = this.UserLeaving.bind(this);
-    window.addEventListener('beforeunload', this.UserLeaving);
     this.state = {
       view: 'home',
       sessionSong: null,
@@ -23,6 +22,10 @@ class App extends Component {
       user: null,
       instrumentPlayed: null
     }
+  }
+
+  componentDidMount() {
+    window.addEventListener('beforeunload', this.UserLeaving);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -46,7 +49,7 @@ class App extends Component {
         <Home startSession={(v) => this.StartSession(v)} />
       );
     }
-    if (this.state.view === 'room') {
+    else if (this.state.view === 'room') {
       return (
         <Room
         song={this.state.sessionSong.song}
