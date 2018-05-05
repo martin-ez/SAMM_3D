@@ -19,7 +19,6 @@ class App extends Component {
       view: 'home',
       sessionSong: null,
       list: [],
-      user: null,
       instrumentPlayed: null
     }
   }
@@ -53,7 +52,6 @@ class App extends Component {
       return (
         <Room
         song={this.state.sessionSong.song}
-        user={this.state.user}
         update={(s) => this.UpdateSessionSong(s)}
         instrument={(instr) => this.SetInstrument(instr)}
         leaveSession={() => this.LeaveSession()}/>

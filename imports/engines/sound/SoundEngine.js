@@ -4,7 +4,7 @@ import { Octavian, Note } from 'octavian';
 import SoundLoader from './SoundLoader.js';
 
 export default class SoundEngine {
-  constructor(newSong) {
+  constructor(newSong, callback) {
     if (!songInstance) {
       songInstance = this;
       this.context = new AudioContext();
@@ -24,15 +24,16 @@ export default class SoundEngine {
         synth: null,
         ready: false
       };
-      this.solo = {
+      this.melody = {
         synth: null,
         ready: false
       };
-      this.ready = false;
     }
+    this.CheckIfReady = this.CheckIfReady.bind(this);
     let soundLoader = new SoundLoader(this.context);
     soundLoader.loadDrumsBuffer((b) => this.FinishedLoadingDrums(b));
     this.LoadSynths();
+    this.readyCallback = callback;
     this.song = newSong;
     return songInstance;
   }
@@ -42,16 +43,19 @@ export default class SoundEngine {
       this.bg.piano = piano;
       this.bg.piano.out.gain.value = 1.2;
       this.bg.ready = true;
+      this.CheckIfReady();
     }.bind(this));
     Soundfont.instrument(this.context, "lead_8_bass__lead").then(function (synth) {
       this.bass.synth = synth;
       this.bass.synth.out.gain.value = 3;
       this.bass.ready = true;
+      this.CheckIfReady();
     }.bind(this));
     Soundfont.instrument(this.context, "alto_sax").then(function (synth) {
-      this.solo.synth = synth;
-      this.solo.synth.out.gain.value = 3;
-      this.solo.ready = true;
+      this.melody.synth = synth;
+      this.melody.synth.out.gain.value = 3;
+      this.melody.ready = true;
+      this.CheckIfReady();
     }.bind(this));
   }
 
@@ -69,6 +73,13 @@ export default class SoundEngine {
     }
     if(this.drums.buffers.length != 0) {
       this.drums.ready = true;
+      this.CheckIfReady();
+    }
+  }
+
+  CheckIfReady() {
+    if(this.bg.ready && this.drums.ready && this.bass.ready && this.melody.ready) {
+      this.readyCallback();
     }
   }
 
@@ -120,17 +131,17 @@ export default class SoundEngine {
     }
   }
 
-  PlaySoloSound(h) {
-    if(this.solo.ready) {
+  PlayMelodySound(h) {
+    if(this.melody.ready) {
       if(h==='-') {
-        this.solo.synth.stop();
+        this.melody.synth.stop();
       } else {
         var octave = 3;
         var rootStr = this.song.key+octave;
         var note = new Note(rootStr);
         note = this.GetPentatonicNote(note, h);
         var noteName = note.letter+(note.modifier?"#":"")+note.octave;
-        this.solo.synth.play(noteName);
+        this.melody.synth.play(noteName);
       }
     }
   }

@@ -7,17 +7,17 @@
 #InstrSelect .instruments
 {
   position: absolute;
-  left: 30vw;
+  left: 10vw;
   top: 10vh;
-  width: 40vw;
-  height: 40vw;
+  width: 80vw;
+  height: 80vw;
 }
 
 #InstrSelect .instruments .instr
 {
   position: absolute;
-  width: 14vw;
-  height: 14vw;
+  width: 16vw;
+  height: 16vw;
   background-color: transparent;
   display: flex;
   align-items: center;
@@ -45,6 +45,12 @@
 #InstrSelect .instruments .instr:not(.taken)
 {
   cursor: pointer;
+  transition: 300ms;
+}
+
+#InstrSelect .instruments .instr:not(.taken):hover
+{
+  color: #E5E5E5;
 }
 
 #InstrSelect .instruments .instr.drums
@@ -55,18 +61,128 @@
 
 #InstrSelect .instruments .instr.bass
 {
-  left: 55%;
+  left: 40%;
   top: 10%;
 }
 
-#InstrSelect .instruments .instr.keys
+#InstrSelect .instruments .instr.melody
 {
-  left: 10%;
-  top: 55%;
+  left: 70%;
+  top: 10%;
 }
 
-#InstrSelect .instruments .instr.solo
+@-webkit-keyframes loader
 {
-  left: 55%;
-  top: 55%;
+  0%, 100% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes loader
+{
+  0%, 100% {
+    opacity: 0.15;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+#InstrSelect .loaderRect
+{
+  -webkit-animation: loader 1.5s ease alternate infinite;
+  animation: loader 1.5s ease alternate infinite;
+}
+
+#InstrSelect .loaderRect:nth-child(1)
+{
+  -webkit-animation-delay: 0.1s;
+  animation-delay: 0.1s;
+}
+
+#InstrSelect .loaderRect:nth-child(2)
+{
+  -webkit-animation-delay: 0.75s;
+  animation-delay: 0.75s;
+}
+
+#InstrSelect .loaderRect:nth-child(3)
+{
+  -webkit-animation-delay: 1.5s;
+  animation-delay: 1.5s;
+}
+
+@keyframes introOpacity
+{
+  0%, 50% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes introColorDrums
+{
+  0% {
+    fill: #1C1C1C;
+    stroke: #1C1C1C;
+  }
+
+  100% {
+    fill: #DF2230;
+    stroke: #DF2230;
+  }
+}
+
+@keyframes introColorBass
+{
+  0% {
+    fill: #1C1C1C;
+    stroke: #1C1C1C;
+  }
+
+  100% {
+    fill: #11882A;
+    stroke: #11882A;
+  }
+}
+
+@keyframes introColorMelody
+{
+  0% {
+    fill: #1C1C1C;
+    stroke: #1C1C1C;
+  }
+
+  100% {
+    fill: #791FC6;
+    stroke: #791FC6;
+  }
+}
+
+#InstrSelect .instrRect.drums:not(.taken)
+{
+  animation: introColorDrums 1.5s ease alternate;
+}
+
+#InstrSelect .instrRect.bass:not(.taken)
+{
+  animation: introColorBass 1.5s ease alternate;
+}
+
+#InstrSelect .instrRect.melody:not(.taken)
+{
+  animation: introColorMelody 1.5s ease alternate;
+}
+
+#InstrSelect .instruments .instr
+{
+  animation: introOpacity 2s ease alternate;
 }

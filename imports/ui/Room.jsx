@@ -12,12 +12,14 @@ class Room extends Component {
   constructor(props) {
     super(props);
     this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
+    this.EngineReady = this.EngineReady.bind(this);
     this.canvasRef = React.createRef();
     this.state = {
       view: 'InstrumentSelect',
       instrument: '',
-      soundEngine: new SoundEngine(props.song),
+      soundEngine: new SoundEngine(props.song, this.EngineReady),
       graphicEngine: new GraphicEngine(),
+      engineReady: false,
       beat: -1,
       bar: 0,
       playing: false
@@ -28,6 +30,7 @@ class Room extends Component {
     if(this.state.view === 'InstrumentSelect') {
       return (
         <InstrumentSelect
+          loader={!this.state.engineReady}
           song={this.props.song}
           select={(instr) => this.SelectInstrument(instr)}/>
       );
@@ -82,6 +85,10 @@ class Room extends Component {
     }
   }
 
+  EngineReady() {
+    this.setState({engineReady: true});
+  }
+
   PlaySounds(currentBeat, currentBar) {
     if (currentBeat === 0) {
       this.state.soundEngine.PlayBGSounds(currentBar);
@@ -98,16 +105,16 @@ class Room extends Component {
         this.state.soundEngine.PlayBassSound(this.props.song.bass.pattern[currentBeat], currentBar);
       }
     }
-    if (this.props.song.solo.user !== '') {
+    if (this.props.song.melody.user !== '') {
       if (currentBeat%2 === 0) {
-        this.state.soundEngine.PlaySoloSound(this.props.song.solo.pattern[currentBar][currentBeat/2]);
+        this.state.soundEngine.PlayMelodySound(this.props.song.melody.pattern[currentBar][currentBeat/2]);
       }
     }
   }
 
-  SelectInstrument(instrument) {
+  SelectInstrument(instrument, userName) {
     var song = this.props.song;
-    song[instrument].user = this.props.user;
+    song[instrument].user = userName;
     this.props.instrument(instrument);
     this.props.update(song);
     this.setState({
@@ -133,7 +140,6 @@ class Room extends Component {
 
 Room.propTypes = {
   song: PropTypes.object.isRequired,
-  user: PropTypes.string.isRequired,
   update: PropTypes.func.isRequired,
   instrument: PropTypes.func.isRequired
 }

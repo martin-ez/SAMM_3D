@@ -26,10 +26,7 @@ SongGenerator.prototype.CreateNewSong = function() {
       pattern: [0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5],
       mode: 16
     },
-    keys: {
-      user: "Disabled"
-    },
-    solo: {
+    melody: {
       user: "",
       pattern: [
         ['-','-','-','-','-','-','-','-'],
@@ -40,7 +37,7 @@ SongGenerator.prototype.CreateNewSong = function() {
       ]
     }
   };
-  var tempos = [75, 80, 85, 90, 95, 100];
+  var tempos = [75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150];
   newSong.tempo = tempos[Math.floor(Math.random() * tempos.length)];
   var keys = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
   newSong.key = keys[Math.floor(Math.random() * keys.length)];

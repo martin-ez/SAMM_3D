@@ -1,22 +1,23 @@
 /*--------------------*/
 /* Global Adjustments */
 /*--------------------*/
+
 *
 {
-box-sizing: border-box;
-margin: 0;
-border: 0;
-padding: 0;
+  box-sizing: border-box;
+  margin: 0;
+  border: 0;
+  padding: 0;
 }
 
 html
 {
-overflow-x: hidden;
+  overflow-x: hidden;
 }
 
 body
 {
-background-color: #E5E5E5;
+  background-color: #E5E5E5;
 }
 
 /*-------------*/
@@ -25,27 +26,27 @@ background-color: #E5E5E5;
 
 h1
 {
-font-family: 'Raleway', sans-serif;
-font-weight: 100;
-text-align: center;
-font-size: 2.75vw;
+  font-family: 'Raleway', sans-serif;
+  font-weight: 100;
+  text-align: center;
+  font-size: 2.75vw;
 }
 
 h2
 {
-font-family: 'Raleway', sans-serif;
-font-weight: 400;
-text-align: justify;
-font-size: 2.25vw;
+  font-family: 'Raleway', sans-serif;
+  font-weight: 400;
+  text-align: justify;
+  font-size: 2.25vw;
 }
 
 p
 {
-font-family: 'Droid Serif', serif;
-font-weight: 400;
-text-align: justify;
-letter-spacing: 0.02rem;
-font-size: 1.75vw;
+  font-family: 'Droid Serif', serif;
+  font-weight: 400;
+  text-align: justify;
+  letter-spacing: 0.02rem;
+  font-size: 1.75vw;
 }
 
 /*-----------------------*/
@@ -54,21 +55,20 @@ font-size: 1.75vw;
 
 .page
 {
-width: 100vw;
-height: 100vh;
+  width: 100vw;
+  height: 100vh;
 }
 
 .instrumentUILarge
 {
-width: 100vh;
-height: 100vh;
-
-grid-column: 1 / span 1;
-grid-row: 1 / span 2;
+  width: 100vh;
+  height: 100vh;
+  grid-column: 1 / span 1;
+  grid-row: 1 / span 2;
 }
 
 .instrumentUISmall
 {
-width: 100vw;
-height: 100vw;
+  width: 100vw;
+  height: 100vw;
 }

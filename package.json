@@ -15,6 +15,7 @@
     "react": "^16.3.2",
     "react-addons-pure-render-mixin": "^15.6.2",
     "react-dom": "^16.3.2",
+    "snapsvg": "^0.5.1",
     "soundfont-player": "^0.10.6",
     "webgl-obj-loader": "^1.1.3"
   }
