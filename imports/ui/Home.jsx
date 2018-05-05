@@ -24,7 +24,7 @@ class Home extends Component {
           <div className="ctaContainer">
             <button className="ctaButton"
               onClick={() => this.DisplayInput()}>
-              <h1 className="text fwThin">Make Music</h1>
+              <h2>Make Music</h2>
             </button>
           </div>
         </div>

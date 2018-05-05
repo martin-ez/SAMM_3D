@@ -12,7 +12,7 @@
 
 html
 {
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 body
@@ -71,4 +71,37 @@ p
 {
   width: 100vw;
   height: 100vw;
+}
+
+button
+{
+  cursor: pointer;
+  background-color: transparent;
+  border-radius: 1vw;
+  transition: 300ms ease;
+  border: 2px solid #181818;
+  color: #181818;
+}
+
+button h2
+{
+  text-align: center;
+}
+
+button:hover
+{
+  background-color: #181818;
+  color: #E5E5E5;
+}
+
+button.alt
+{
+  border: 2px solid #E5E5E5;
+  color: #E5E5E5;
+}
+
+button.alt:hover
+{
+  background-color: #E5E5E5;
+  color: #181818;
 }

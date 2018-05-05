@@ -32,12 +32,12 @@ class Room extends Component {
         <InstrumentSelect
           loader={!this.state.engineReady}
           song={this.props.song}
-          select={(instr) => this.SelectInstrument(instr)}/>
+          select={(instr, name) => this.SelectInstrument(instr, name)}/>
       );
     } else {
       return (
         <div id='Room'>
-          <canvas ref={this.canvasRef}>
+          <canvas ref={(c) => {this.canvasRef = c;}}>
             This browser don't support WebGL.
           </canvas>
         </div>
@@ -69,7 +69,7 @@ class Room extends Component {
   componentDidUpdate() {
     if(this.state.view === 'Scene' && !this.state.graphicEngine.gl) {
       this.updateWindowDimensions();
-      this.state.graphicEngine.SetContext(this.canvasRef.current);
+      this.state.graphicEngine.SetContext(this.canvasRef);
       this.state.graphicEngine.CreateScene();
       this.state.graphicEngine.DrawScene();
     }

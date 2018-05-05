@@ -71,6 +71,64 @@
   top: 10%;
 }
 
+#InstrSelect .instruments .nameInput
+{
+  position: absolute;
+  width: 64vw;
+  height: 32vw;
+  left: 8vw;
+  top: 8vw;
+  background-color: transparent;
+  color: #E5E5E5;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  grid-gap: 2vw;
+  padding: 2vw;
+}
+
+#InstrSelect .instruments .nameInput h1
+{
+  grid-column: 1 / span 2;
+  grid-row: 1;
+
+  margin-top: 20%;
+  width: 100%;
+  text-align: left;
+}
+
+#InstrSelect .instruments .nameInput .inputBox
+{
+  grid-column: 1 / span 2;
+  grid-row: 2;
+
+  caret-color: #E5E5E5;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  border: none;
+  color: #E5E5E5;
+  font-family: 'Raleway', sans-serif;
+  font-weight: 400;
+  font-size: 5.5vw;
+}
+
+#InstrSelect .instruments .nameInput button
+{
+  width: calc(100%-2vw);
+  height: calc(100%-2vw);
+  margin: 1vw;
+  padding: 2vw;
+}
+
+#InstrSelect .instruments .nameInput button h2
+{
+  padding: 0;
+  margin: 0;
+  font-size: 2vw;
+}
+
 @-webkit-keyframes loader
 {
   0%, 100% {
@@ -128,61 +186,12 @@
   }
 }
 
-@keyframes introColorDrums
-{
-  0% {
-    fill: #1C1C1C;
-    stroke: #1C1C1C;
-  }
-
-  100% {
-    fill: #DF2230;
-    stroke: #DF2230;
-  }
-}
-
-@keyframes introColorBass
-{
-  0% {
-    fill: #1C1C1C;
-    stroke: #1C1C1C;
-  }
-
-  100% {
-    fill: #11882A;
-    stroke: #11882A;
-  }
-}
-
-@keyframes introColorMelody
-{
-  0% {
-    fill: #1C1C1C;
-    stroke: #1C1C1C;
-  }
-
-  100% {
-    fill: #791FC6;
-    stroke: #791FC6;
-  }
-}
-
-#InstrSelect .instrRect.drums:not(.taken)
-{
-  animation: introColorDrums 1.5s ease alternate;
-}
-
-#InstrSelect .instrRect.bass:not(.taken)
-{
-  animation: introColorBass 1.5s ease alternate;
-}
-
-#InstrSelect .instrRect.melody:not(.taken)
-{
-  animation: introColorMelody 1.5s ease alternate;
-}
-
 #InstrSelect .instruments .instr
 {
-  animation: introOpacity 2s ease alternate;
+  animation: introOpacity 1s ease alternate;
+}
+
+#InstrSelect .instruments .nameInput
+{
+  animation: introOpacity 1s ease alternate;
 }
