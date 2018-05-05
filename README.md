@@ -7,13 +7,13 @@ Esta versión le da a SAMM una interfaz 3D, creada con WebGL. De esta forma, los
 ___
 ### Tecnologias
 - ReactJS en el Frontend
-- Meteor para el enrutamiento
+- Meteor para como streaming plataform
 - MongoDB como base de datos
 - NodeJS en el backend
 - Web Audio API como motor de sonido
 - WebGL para la interfaz grafica.
 ___
 ### Links
-- [SAMM 3D]()
+- [SAMM 3D](http://ec2-18-220-50-90.us-east-2.compute.amazonaws.com/)
 - [SAMM (Versión 2D)](https://s-a-m-m.herokuapp.com/)
-- [Pagina del curso](http://johnguerra.co/classes/webDevelopment_fall_2017/)
+- [Pagina del curso](https://cursos.virtual.uniandes.edu.co/isis4823/)
