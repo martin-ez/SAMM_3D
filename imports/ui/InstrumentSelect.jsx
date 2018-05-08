@@ -69,8 +69,7 @@ class InstrumentSelect extends Component {
       var instruments = ['drums', 'bass', 'melody'];
       instruments.map((instr, i) => {
         var dist = 10 + (i * 30);
-        var color = i == 0? '#DF2230': (i == 1? '#11882A': '#791FC6');
-        console.log(instr+'- Color: '+color+' Dist: '+dist);
+        var color = i == 0? '#DF2230': (i == 1? '#11882A': '#791FC6');  
         var r = snap.rect(dist + '%', '10%', '20%', '20%', '3%', '3%');
         r.attr({fill: '#1C1C1C', stroke: '#1C1C1C'});
         if (this.props.song[instr].user !== '') {

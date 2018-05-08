@@ -2,7 +2,7 @@ import Utils from './WebGL-Utils.js';
 
 export default class ShaderFactory {
 
-  static GetSimpleShaderInfo(gl) {
+  static GetSimpleShader(gl) {
     var vertex = `
     precision mediump float;
 
@@ -79,6 +79,62 @@ export default class ShaderFactory {
         u_ambientFactor: {
           'location': gl.getUniformLocation(shaderProgram, 'u_ambientFactor'),
           'type': 'float',
+        },
+      },
+    };
+    return programInfo;
+  }
+
+  static GetTestShader(gl) {
+    var vertex = `
+    attribute vec4 a_position;
+    attribute vec4 a_color;
+
+    uniform mat4 u_worldMatrix;
+    uniform mat4 u_viewMatrix;
+    uniform mat4 u_projectionMatrix;
+
+    varying lowp vec4 f_color;
+
+    void main() {
+      gl_Position = u_projectionMatrix * u_viewMatrix * u_worldMatrix * a_position;
+      f_color = a_color;
+    }
+    `;
+    var fragment = `
+    varying lowp vec4 f_color;
+
+    void main() {
+      gl_FragColor = f_color;
+    }
+    `;
+    var shaderProgram = Utils.CreateProgram(gl, vertex, fragment);
+    const programInfo = {
+      program: shaderProgram,
+      attributes: {
+        a_position: {
+          'location': gl.getAttribLocation(shaderProgram, 'a_position'),
+          'numComponents': 3,
+          'type': gl.FLOAT,
+        },
+        a_color: {
+          'location': gl.getAttribLocation(shaderProgram, 'a_color'),
+          'numComponents': 4,
+          'type': gl.FLOAT,
+        },
+      },
+      uniforms: {
+        u_projectionMatrix: {
+          'location': gl.getUniformLocation(shaderProgram, 'u_projectionMatrix'),
+          'type': 'matrix4',
+        },
+        u_viewMatrix: {
+          'location': gl.getUniformLocation(shaderProgram, 'u_viewMatrix'),
+          'type': 'matrix4',
+        },
+        u_worldMatrix: {
+          'location': gl.getUniformLocation(shaderProgram, 'u_worldMatrix'),
+          'type': 'matrix4',
         },
       },
     };
