@@ -12,6 +12,7 @@
     "gl-matrix": "^2.5.1",
     "meteor-node-stubs": "^0.3.3",
     "octavian": "^2.2.0",
+    "primitive-cube": "^2.0.1",
     "primitive-torus": "^1.0.4",
     "react": "^16.3.2",
     "react-addons-pure-render-mixin": "^15.6.2",

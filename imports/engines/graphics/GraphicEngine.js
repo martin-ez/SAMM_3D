@@ -2,6 +2,7 @@ let graphicInstance = null;
 import Utils from './WebGL-Utils.js';
 import OBJ from 'webgl-obj-loader';
 import PrimitiveTorus from 'primitive-torus';
+import PrimitiveCube from 'primitive-cube';
 import {mat4, vec3, quat} from 'gl-matrix';
 import ShaderFactory from './ShaderFactory.js';
 
@@ -34,179 +35,48 @@ export default class GraphicEngine {
   }
 
   CreateScene(instrument) {
-    const positions = [
-      // Front face
-      -1.0,
-      -1.0,
-      1.0,
-      1.0,
-      -1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      -1.0,
-      1.0,
-      1.0,
-
-      // Back face
-      -1.0,
-      -1.0,
-      -1.0,
-      -1.0,
-      1.0,
-      -1.0,
-      1.0,
-      1.0,
-      -1.0,
-      1.0,
-      -1.0,
-      -1.0,
-
-      // Top face
-      -1.0,
-      1.0,
-      -1.0,
-      -1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      -1.0,
-
-      // Bottom face
-      -1.0,
-      -1.0,
-      -1.0,
-      1.0,
-      -1.0,
-      -1.0,
-      1.0,
-      -1.0,
-      1.0,
-      -1.0,
-      -1.0,
-      1.0,
-
-      // Right face
-      1.0,
-      -1.0,
-      -1.0,
-      1.0,
-      1.0,
-      -1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      -1.0,
-      1.0,
-
-      // Left face
-      -1.0,
-      -1.0,
-      -1.0,
-      -1.0,
-      -1.0,
-      1.0,
-      -1.0,
-      1.0,
-      1.0,
-      -1.0,
-      1.0,
-      -1.0
-    ];
-    const faceColors = [
-      [
-        1.0, 1.0, 1.0, 1.0
-      ], // Front face: white
-      [
-        1.0, 0.0, 0.0, 1.0
-      ], // Back face: red
-      [
-        0.0, 1.0, 0.0, 1.0
-      ], // Top face: green
-      [
-        0.0, 0.0, 1.0, 1.0
-      ], // Bottom face: blue
-      [
-        1.0, 1.0, 0.0, 1.0
-      ], // Right face: yellow
-      [
-        1.0, 0.0, 1.0, 1.0
-      ], // Left face: purple
-    ];
-
-    // Convert the array of colors into a table for all the vertices.
-
-    var color = [1.0, 0.0, 1.0];
-
-    const vertexNormals = [
-  // Front
-   0.0,  0.0,  1.0,
-   0.0,  0.0,  1.0,
-   0.0,  0.0,  1.0,
-   0.0,  0.0,  1.0,
-
-  // Back
-   0.0,  0.0, -1.0,
-   0.0,  0.0, -1.0,
-   0.0,  0.0, -1.0,
-   0.0,  0.0, -1.0,
-
-  // Top
-   0.0,  1.0,  0.0,
-   0.0,  1.0,  0.0,
-   0.0,  1.0,  0.0,
-   0.0,  1.0,  0.0,
-
-  // Bottom
-   0.0, -1.0,  0.0,
-   0.0, -1.0,  0.0,
-   0.0, -1.0,  0.0,
-   0.0, -1.0,  0.0,
-
-  // Right
-   1.0,  0.0,  0.0,
-   1.0,  0.0,  0.0,
-   1.0,  0.0,  0.0,
-   1.0,  0.0,  0.0,
-
-  // Left
-  -1.0,  0.0,  0.0,
-  -1.0,  0.0,  0.0,
-  -1.0,  0.0,  0.0,
-  -1.0,  0.0,  0.0
-];
-
-    const indices = [
-      0,  1,  2,      0,  2,  3,    // front
-      4,  5,  6,      4,  6,  7,    // back
-      8,  9,  10,     8,  10, 11,   // top
-      12, 13, 14,     12, 14, 15,   // bottom
-      16, 17, 18,     16, 18, 19,   // right
-      20, 21, 22,     20, 22, 23,   // left
-    ];
-
+    var cubeMesh = PrimitiveCube();
     var shaderProgram = ShaderFactory.GetSimpleShader(this.gl);
     var testEntity = new Entity('TestEntity', this.origin);
-    testEntity.Initialize(this.gl, shaderProgram, positions, vertexNormals, color, indices);
+    testEntity.Initialize(this.gl, shaderProgram,
+      cubeMesh.positions.flatten(),
+      cubeMesh.normals.flatten(),
+      [1.0, 0.0, 1.0],
+      cubeMesh.cells.flatten());
     testEntity.Translate([0.0, -2.0, 0.0]);
     testEntity.Rotate(45, [0.0, 1.0, 0.0]);
     this.entities.push(testEntity);
-    this.camera.Initialize([-0.0, 0.0, -6.0], [-0.0, 0.0, -7.0]);
 
     var mesh = PrimitiveTorus();
-    var torus = new Entity(this.origin);
+    var torus = new Entity('Torus', this.origin);
     torus.Initialize(this.gl, shaderProgram,
       mesh.positions.flatten(),
       mesh.normals.flatten(),
       [0.0, 1.0, 0.5],
       mesh.cells.flatten());
     this.entities.push(torus);
+
+    var floor = new Entity('Floor', this.origin);
+    floor.Initialize(this.gl, shaderProgram,
+      cubeMesh.positions.flatten(),
+      cubeMesh.normals.flatten(),
+      [0.5, 0.5, 0.5],
+      cubeMesh.cells.flatten());
+    floor.Translate([0.0, -3.5, 0.0]);
+    floor.Scale([20.0, 1.0, 20.0]);
+    this.entities.push(floor);
+
+    switch(instrument) {
+      case 'drums':
+        this.camera.Initialize([-0.0, 0.0, -6.0], [-0.0, 0.0, -7.0]);
+        break;
+      case 'bass':
+        this.camera.Initialize([4.0, 0.0, 4.0], [-0.0, 0.0, -7.0]);
+        break;
+      case 'melody':
+        this.camera.Initialize([-4.0, 0.0, 4.0], [-0.0, 0.0, -7.0]);
+        break;
+    }
   }
 
   CanvasDimensions(w, h) {
@@ -223,7 +93,7 @@ export default class GraphicEngine {
   }
 
   CalculateAnimations(time, deltaTime) {
-    this.entities[0].Rotate(1, [0.0, 0, 1]);
+    this.entities[0].Rotate(1, [0.0, 0.0, 1.0]);
 
     //Update entities
     this.origin.Update(null);
@@ -388,15 +258,20 @@ class Camera {
   Initialize(position, target) {
     this.viewNeedsUpdate = true;
     this.position = position;
-    this.yaw = 10;
-    this.pitch = 175
+    this.yaw = 0;
+    this.pitch = 180;
   }
 
   HandleMovement(x, y) {
     this.viewNeedsUpdate = true;
-    var speed = 0.8;
-    this.yaw += Math.sign(x) * speed;
-    this.pitch += Math.sign(y) * speed;
+    var speed = 0.25;
+
+    this.yaw += x * speed;
+    if (this.yaw < 0) this.yaw += 360;
+    if (this.yaw >= 360) this.yaw -= 360;
+    this.pitch += y * speed;
+    if (this.pitch < 100) this.pitch = 100;
+    if (this.pitch > 260) this.pitch = 260;
   }
 
   SetAspectRatio(aspect) {

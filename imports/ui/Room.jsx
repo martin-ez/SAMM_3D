@@ -75,7 +75,7 @@ class Room extends Component {
       this.updateWindowDimensions();
       this.EngagePointerLock(this.canvasRef);
       this.state.graphicEngine.SetContext(this.canvasRef);
-      this.state.graphicEngine.CreateScene();
+      this.state.graphicEngine.CreateScene(this.state.instrument);
       this.state.graphicEngine.Render();
       this.sceneReady = true;
     }
