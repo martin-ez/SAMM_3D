@@ -13,7 +13,11 @@ class Room extends Component {
     super(props);
     this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
     this.EngineReady = this.EngineReady.bind(this);
+    this.HandlePointerLockChange = this.HandlePointerLockChange.bind(this);
+    this.HandleMouseMove = this.HandleMouseMove.bind(this);
     this.canvasRef = React.createRef();
+    this.sceneReady = false;
+    this.pointerLock = false;
     this.state = {
       view: 'InstrumentSelect',
       instrument: '',
@@ -37,7 +41,7 @@ class Room extends Component {
     } else {
       return (
         <div id='Room'>
-          <canvas ref={(c) => {this.canvasRef = c;}}>
+          <canvas ref={(c) => {this.canvasRef = c;}} onClick={() => this.EngagePointerLock()}>
             This browser don't support WebGL.
           </canvas>
         </div>
@@ -67,11 +71,13 @@ class Room extends Component {
   }
 
   componentDidUpdate() {
-    if(this.state.view === 'Scene' && !this.state.graphicEngine.gl) {
+    if(this.state.view === 'Scene' && !this.state.graphicEngine.gl && !this.state.sceneReady) {
       this.updateWindowDimensions();
+      this.EngagePointerLock(this.canvasRef);
       this.state.graphicEngine.SetContext(this.canvasRef);
       this.state.graphicEngine.CreateScene();
       this.state.graphicEngine.Render();
+      this.sceneReady = true;
     }
   }
 
@@ -83,6 +89,49 @@ class Room extends Component {
     if(this.state.graphicEngine) {
       this.state.graphicEngine.CanvasDimensions(window.innerWidth, window.innerHeight);
     }
+  }
+
+  EngagePointerLock() {
+    var havePointerLock = 'pointerLockElement' in document ||
+    'mozPointerLockElement' in document ||
+    'webkitPointerLockElement' in document;
+    if(havePointerLock && !this.pointerLock) {
+      this.canvasRef.requestPointerLock = this.canvasRef.requestPointerLock ||
+			  this.canvasRef.mozRequestPointerLock ||
+			  this.canvasRef.webkitRequestPointerLock;
+      this.canvasRef.requestPointerLock();
+      this.pointerLock = true;
+      document.addEventListener('pointerlockchange', this.HandlePointerLockChange, false);
+      document.addEventListener('mozpointerlockchange', this.HandlePointerLockChange, false);
+      document.addEventListener('webkitpointerlockchange', this.HandlePointerLockChange, false);
+      document.addEventListener('mousemove', this.HandleMouseMove, false);
+    }
+  }
+
+  HandlePointerLockChange() {
+    if (document.pointerLockElement === this.canvasRef ||
+      document.mozPointerLockElement === this.canvasRef ||
+      document.webkitPointerLockElement === this.canvasRef) {
+      // Pointer locked
+      this.pointerLock = true;
+      document.addEventListener('mousemove', this.HandleMouseMove, false);
+    } else {
+      // Pointer unlocked
+      this.pointerLock = false;
+      document.removeEventListener('mousemove', this.HandleMouseMove, false);
+    }
+  }
+
+  HandleMouseMove(e) {
+    var movementX = e.movementX ||
+      e.mozMovementX ||
+      e.webkitMovementX ||
+      0;
+    var movementY = e.movementY ||
+      e.mozMovementY ||
+      e.webkitMovementY ||
+      0;
+    this.state.graphicEngine.CameraMovement(movementX, movementY);
   }
 
   EngineReady() {

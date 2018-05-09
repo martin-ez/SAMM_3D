@@ -34,8 +34,6 @@ export default class GraphicEngine {
   }
 
   CreateScene(instrument) {
-    var testEntity = new Entity('TestEntity', this.origin);
-
     const positions = [
       // Front face
       -1.0,
@@ -144,14 +142,45 @@ export default class GraphicEngine {
 
     // Convert the array of colors into a table for all the vertices.
 
-    var colors = [];
+    var color = [1.0, 0.0, 1.0];
 
-    for (var j = 0; j < faceColors.length; ++j) {
-      const c = faceColors[j];
+    const vertexNormals = [
+  // Front
+   0.0,  0.0,  1.0,
+   0.0,  0.0,  1.0,
+   0.0,  0.0,  1.0,
+   0.0,  0.0,  1.0,
 
-      // Repeat each color four times for the four vertices of the face
-      colors = colors.concat(c, c, c, c);
-    }
+  // Back
+   0.0,  0.0, -1.0,
+   0.0,  0.0, -1.0,
+   0.0,  0.0, -1.0,
+   0.0,  0.0, -1.0,
+
+  // Top
+   0.0,  1.0,  0.0,
+   0.0,  1.0,  0.0,
+   0.0,  1.0,  0.0,
+   0.0,  1.0,  0.0,
+
+  // Bottom
+   0.0, -1.0,  0.0,
+   0.0, -1.0,  0.0,
+   0.0, -1.0,  0.0,
+   0.0, -1.0,  0.0,
+
+  // Right
+   1.0,  0.0,  0.0,
+   1.0,  0.0,  0.0,
+   1.0,  0.0,  0.0,
+   1.0,  0.0,  0.0,
+
+  // Left
+  -1.0,  0.0,  0.0,
+  -1.0,  0.0,  0.0,
+  -1.0,  0.0,  0.0,
+  -1.0,  0.0,  0.0
+];
 
     const indices = [
       0,  1,  2,      0,  2,  3,    // front
@@ -162,28 +191,22 @@ export default class GraphicEngine {
       20, 21, 22,     20, 22, 23,   // left
     ];
 
-    var shaderProgram = ShaderFactory.GetTestShader(this.gl);
-    testEntity.Initialize(this.gl, shaderProgram, positions, colors, indices);
+    var shaderProgram = ShaderFactory.GetSimpleShader(this.gl);
+    var testEntity = new Entity('TestEntity', this.origin);
+    testEntity.Initialize(this.gl, shaderProgram, positions, vertexNormals, color, indices);
+    testEntity.Translate([0.0, -2.0, 0.0]);
+    testEntity.Rotate(45, [0.0, 1.0, 0.0]);
     this.entities.push(testEntity);
-    this.camera.SetTarget(-0.0, 0.0, -7.0);
-    this.camera.SetPosition(-0.0, 0.0, -6.0);
-    /*switch (instrument) {
-      case 'drums':
-        this.camera.SetPosition(-2.0, 5.0, 0);
-        break;
-      case 'bass':
-        this.camera.SetPosition(-1.0, 5.0, -1.0);
-        break;
-      case 'solo':
-        this.camera.SetPosition(0.0, 5.0, -2.0);
-        break;
-    }
-    var shaderProgram = ShaderFactory.GetSimpleShaderInfo(this.gl);
+    this.camera.Initialize([-0.0, 0.0, -6.0], [-0.0, 0.0, -7.0]);
+
     var mesh = PrimitiveTorus();
     var torus = new Entity(this.origin);
-    torus.Initialize(this.gl, shaderProgram, mesh, [0.0, 0.0, 0.0]);
-    torus.SetPosition(0.0,-1.0,0.0);
-    this.entities.push(torus);*/
+    torus.Initialize(this.gl, shaderProgram,
+      mesh.positions.flatten(),
+      mesh.normals.flatten(),
+      [0.0, 1.0, 0.5],
+      mesh.cells.flatten());
+    this.entities.push(torus);
   }
 
   CanvasDimensions(w, h) {
@@ -195,8 +218,12 @@ export default class GraphicEngine {
     this.camera.SetAspectRatio(aspect);
   }
 
+  CameraMovement(x, y) {
+    this.camera.HandleMovement(x, y);
+  }
+
   CalculateAnimations(time, deltaTime) {
-    this.entities[0].Rotate(1, [0.5, 1.0, 1.0]);
+    this.entities[0].Rotate(1, [0.0, 0, 1]);
 
     //Update entities
     this.origin.Update(null);
@@ -210,7 +237,7 @@ export default class GraphicEngine {
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.depthFunc(this.gl.LEQUAL);
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clearColor(1.0, 1.0, 1.0, 1.0);
     this.gl.clearDepth(1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
@@ -222,8 +249,8 @@ export default class GraphicEngine {
     var programUniforms = {
       'u_viewMatrix': viewMatrix,
       'u_projectionMatrix': projMatrix,
-      /*'u_lightDirection': [0.0, -1.0, 1.0],
-      'u_ambientFactor': 0.6,*/
+      'u_lightDirection': [0.0, -1.0, -0.25],
+      'u_ambientFactor': 0.3,
     };
 
     //Draw Objects
@@ -245,7 +272,7 @@ export default class GraphicEngine {
 
       //Draw entity
       this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, entity.indexBuffer);
-      const vertexCount = 36;
+      const vertexCount = entity.numComponents;
       const type = this.gl.UNSIGNED_SHORT;
       const offset = 0;
       this.gl.drawElements(this.gl.TRIANGLES, vertexCount, type, offset);
@@ -271,22 +298,15 @@ class Entity {
     this.children = [];
     this.localMatrix = mat4.create();
     this.worldMatrix = mat4.create();
-    this.flag = true;
-    this.Update = this.Update.bind(this);
-    this.Initialize = this.Initialize.bind(this);
-    this.Translate = this.Translate.bind(this);
-    this.Rotate = this.Rotate.bind(this);
-    this.Scale = this.Scale.bind(this);
-    this.SetParent = this.SetParent.bind(this);
-    this.GetUniforms = this.GetUniforms.bind(this);
   }
 
-  Initialize(gl, programInfo, positions, colors, indices) {
+  Initialize(gl, programInfo, positions, normals, color, indices) {
     this.programInfo = programInfo;
-    //this.meshColor = color;
+    this.meshColor = color;
+    this.numComponents = indices.length;
     var attributes = {
       'a_position': positions,
-      'a_color': colors
+      'a_normal': normals
     };
     this.buffers = Utils.CreateAttributesBuffers(gl, attributes);
     this.indexBuffer= Utils.CreateIndexBuffer(gl, indices);
@@ -331,22 +351,14 @@ class Entity {
     });
   }
 
-  ProcessMesh(gl, mesh) {
-    var attributes = {
-      'a_position': mesh.positions.flatten(),
-      'a_normal': mesh.normals.flatten()
-    };
-    this.buffers = Utils.CreateAttributesBuffers(gl, attributes);
-
-    var indices = mesh.cells.flatten();
-    this.numComponents = indices.length;
-    this.indexBuffer = Utils.CreateIndexBuffer(gl, indices);
-  }
-
   GetUniforms() {
+    const normalMatrix = mat4.create();
+    mat4.invert(normalMatrix, this.worldMatrix);
+    mat4.transpose(normalMatrix, normalMatrix);
     var uniforms = {
-      'u_worldMatrix': this.worldMatrix,
-      //'u_diffuseColor': this.meshColor,
+      u_worldMatrix: this.worldMatrix,
+      u_normalMatrix: normalMatrix,
+      u_diffuseColor: this.meshColor,
     }
     return uniforms;
   }
@@ -363,7 +375,8 @@ class Light {}
 class Camera {
   constructor(fov, aspect) {
     this.position = vec3.create();
-    this.target = vec3.create();
+    this.yaw = 0;
+    this.pitch = 0;
     this.viewMatrix = mat4.create();
     this.viewNeedsUpdate = true;
     this.projectionMatrix = mat4.create();
@@ -372,14 +385,18 @@ class Camera {
     this.fov = fov * Math.PI / 180;
   }
 
-  SetPosition(x, y, z) {
-    this.position = vec3.fromValues(x, y, z);
+  Initialize(position, target) {
     this.viewNeedsUpdate = true;
+    this.position = position;
+    this.yaw = 10;
+    this.pitch = 175
   }
 
-  SetTarget(x, y, z) {
-    this.target = vec3.fromValues(x, y, z);
+  HandleMovement(x, y) {
     this.viewNeedsUpdate = true;
+    var speed = 0.8;
+    this.yaw += Math.sign(x) * speed;
+    this.pitch += Math.sign(y) * speed;
   }
 
   SetAspectRatio(aspect) {
@@ -394,7 +411,9 @@ class Camera {
 
   GetViewMatrix() {
     if (this.viewNeedsUpdate) {
-      mat4.lookAt(this.viewMatrix, this.position, this.target, vec3.fromValues(0.0, 1.0, 0.0));
+      var rotation = quat.create();
+      quat.fromEuler(rotation, -this.pitch, this.yaw, 180.0);
+      mat4.fromRotationTranslation(this.viewMatrix, rotation, this.position);
       mat4.invert(this.viewMatrix, this.viewMatrix);
       this.viewNeedsUpdate = false;
     }

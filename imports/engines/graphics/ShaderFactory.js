@@ -4,40 +4,36 @@ export default class ShaderFactory {
 
   static GetSimpleShader(gl) {
     var vertex = `
-    precision mediump float;
-
-    attribute vec3 a_position;
+    attribute vec4 a_position;
     attribute vec3 a_normal;
 
     uniform mat4 u_projectionMatrix;
     uniform mat4 u_viewMatrix;
     uniform mat4 u_worldMatrix;
-
-    varying vec3 f_norm;
-
-    void main() {
-      vec3 pos = (u_worldMatrix * vec4(a_position, 1.0)).xyz;
-      f_norm = (u_worldMatrix * vec4(a_normal, 0.0)).xyz;
-      gl_Position = u_projectionMatrix * u_viewMatrix * vec4(pos, 1.0);
-    }
-    `;
-    var fragment = `
-    precision mediump float;
-
-    varying vec3 f_norm;
+    uniform mat4 u_normalMatrix;
 
     uniform vec3 u_lightDirection;
     uniform vec3 u_diffuseColor;
     uniform float u_ambientFactor;
 
-    void main() {
-      vec3 en = normalize(f_norm);
-      vec3 ln = normalize(u_lightDirection);
-      float df = max(0.0, dot(en, ln));
+    varying highp vec3 f_lighting;
 
-      vec3 ambient = vec3(u_ambientFactor, u_ambientFactor, u_ambientFactor);
-      vec3 color = ambient + df * u_diffuseColor;
-      gl_FragColor = vec4(color, 1.0);
+    void main() {
+      gl_Position = u_projectionMatrix * u_viewMatrix * u_worldMatrix * a_position;
+
+      highp vec3 ambientLight = vec3(u_ambientFactor, u_ambientFactor, u_ambientFactor);
+      highp vec3 lightDirection = normalize(u_lightDirection);
+
+      highp vec4 transformedNormal = u_normalMatrix * vec4(a_normal, 1.0);
+      highp float light = max(dot(transformedNormal.xyz, -1.0 * lightDirection), 0.0);
+      f_lighting = (u_ambientFactor * u_diffuseColor) + (light * u_diffuseColor);
+    }
+    `;
+    var fragment = `
+    varying highp vec3 f_lighting;
+
+    void main() {
+      gl_FragColor = vec4(f_lighting, 1.0);
     }
     `;
     var shaderProgram = Utils.CreateProgram(gl, vertex, fragment);
@@ -66,6 +62,10 @@ export default class ShaderFactory {
         },
         u_worldMatrix: {
           'location': gl.getUniformLocation(shaderProgram, 'u_worldMatrix'),
+          'type': 'matrix4',
+        },
+        u_normalMatrix: {
+          'location': gl.getUniformLocation(shaderProgram, 'u_normalMatrix'),
           'type': 'matrix4',
         },
         u_lightDirection: {
