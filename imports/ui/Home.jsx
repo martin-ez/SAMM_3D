@@ -23,20 +23,13 @@ class Home extends Component {
           </div>
           <div className="ctaContainer">
             <button className="ctaButton"
-              onClick={() => this.DisplayInput()}>
+              onClick={() => this.props.startSession()}>
               <h2>Make Music</h2>
             </button>
           </div>
         </div>
       </div>
     );
-  }
-
-  DisplayInput() {
-    this.setState({
-      nameInput: true
-    });
-    this.props.startSession("FakeName");
   }
 
   RenderText() {

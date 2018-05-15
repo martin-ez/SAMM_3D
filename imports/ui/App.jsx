@@ -59,10 +59,10 @@ class App extends Component {
     }
   }
 
-  StartSession(userName) {
+  StartSession() {
     if(this.state.sessionSong===null) {
       var end = false;
-      if (this.state.list !== 0) {
+      if (this.state.list.length !== 0) {
         for (var i = 0; i < this.state.list.length && !end; i++) {
           if (this.state.list[i].noUsers < 3) {
             var id = this.state.list[i]._id;
@@ -77,7 +77,6 @@ class App extends Component {
                 var s = SessionDB.findOne(id);
                 this.setState({
                   sessionSong: s,
-                  user: userName,
                   view: 'room'
                 });
               }
@@ -102,7 +101,6 @@ class App extends Component {
             var s = SessionDB.findOne(response);
             this.setState({
               sessionSong: s,
-              user: userName,
               view: 'room'
             });
           }
@@ -110,7 +108,6 @@ class App extends Component {
       }
     } else {
       this.setState({
-        user: userName,
         view: 'room'
       });
     }

@@ -1,10 +1,12 @@
 let graphicInstance = null;
 import Utils from './WebGL-Utils.js';
-import OBJ from 'webgl-obj-loader';
 import PrimitiveTorus from 'primitive-torus';
 import PrimitiveCube from 'primitive-cube';
 import {mat4, vec3, quat} from 'gl-matrix';
 import ShaderFactory from './ShaderFactory.js';
+
+//Import 3D models
+import Meshes from './Models.json';
 
 export default class GraphicEngine {
   constructor() {
@@ -43,7 +45,7 @@ export default class GraphicEngine {
       cubeMesh.normals.flatten(),
       [1.0, 0.0, 1.0],
       cubeMesh.cells.flatten());
-    testEntity.Translate([0.0, -2.0, 0.0]);
+    testEntity.Translate([0.0, 2.0, 0.0]);
     testEntity.Rotate(45, [0.0, 1.0, 0.0]);
     this.entities.push(testEntity);
 
@@ -54,27 +56,27 @@ export default class GraphicEngine {
       mesh.normals.flatten(),
       [0.0, 1.0, 0.5],
       mesh.cells.flatten());
+    torus.Translate([0.0, 4.0, 0.0]);
     this.entities.push(torus);
 
-    var floor = new Entity('Floor', this.origin);
-    floor.Initialize(this.gl, shaderProgram,
-      cubeMesh.positions.flatten(),
-      cubeMesh.normals.flatten(),
+    console.log(Meshes.room);
+    var room = new Entity('Room', this.origin);
+    room.Initialize(this.gl, shaderProgram,
+      Meshes.room.vertices,
+      Meshes.room.normals,
       [0.5, 0.5, 0.5],
-      cubeMesh.cells.flatten());
-    floor.Translate([0.0, -3.5, 0.0]);
-    floor.Scale([20.0, 1.0, 20.0]);
-    this.entities.push(floor);
+      Meshes.room.faces.flatten());
+    this.entities.push(room);
 
     switch(instrument) {
       case 'drums':
-        this.camera.Initialize([-0.0, 0.0, -6.0], [-0.0, 0.0, -7.0]);
+        this.camera.Initialize([-0.0, 4.0, -6.0], [-0.0, 0.0, -7.0]);
         break;
       case 'bass':
-        this.camera.Initialize([4.0, 0.0, 4.0], [-0.0, 0.0, -7.0]);
+        this.camera.Initialize([4.0, 4.0, 4.0], [-0.0, 0.0, -7.0]);
         break;
       case 'melody':
-        this.camera.Initialize([-4.0, 0.0, 4.0], [-0.0, 0.0, -7.0]);
+        this.camera.Initialize([-4.0, 4.0, 4.0], [-0.0, 0.0, -7.0]);
         break;
     }
   }
