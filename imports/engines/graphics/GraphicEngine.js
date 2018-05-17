@@ -15,20 +15,18 @@ export default class GraphicEngine {
       this.gl = null;
       this.origin = new Entity('Origin', null);
       this.entities = [];
-      this.light = [];
-      this.camera = new Camera(45.0, 1.0);
+      this.animations = [];
+      this.camera = new Camera(60.0, 1.0);
       this.size = {
         width: 0,
         height: 0
       };
+      this.activeUsers = {
+        drums: false,
+        bass: false,
+        melody: false
+      }
     }
-    this.then = 0;
-    this.SetContext = this.SetContext.bind(this);
-    this.CanvasDimensions = this.CanvasDimensions.bind(this);
-    this.CreateScene = this.CreateScene.bind(this);
-    this.CalculateAnimations = this.CalculateAnimations.bind(this);
-    this.DrawScene = this.DrawScene.bind(this);
-    this.Render = this.Render.bind(this);
     return graphicInstance;
   }
 
@@ -37,48 +35,83 @@ export default class GraphicEngine {
   }
 
   CreateScene(instrument) {
-    var cubeMesh = PrimitiveCube();
+    //Get Shader
     var shaderProgram = ShaderFactory.GetSimpleShader(this.gl);
-    var testEntity = new Entity('TestEntity', this.origin);
-    testEntity.Initialize(this.gl, shaderProgram,
-      cubeMesh.positions.flatten(),
-      cubeMesh.normals.flatten(),
-      [1.0, 0.0, 1.0],
-      cubeMesh.cells.flatten());
-    testEntity.Translate([0.0, 2.0, 0.0]);
-    testEntity.Rotate(45, [0.0, 1.0, 0.0]);
-    this.entities.push(testEntity);
 
-    var mesh = PrimitiveTorus();
-    var torus = new Entity('Torus', this.origin);
-    torus.Initialize(this.gl, shaderProgram,
-      mesh.positions.flatten(),
-      mesh.normals.flatten(),
-      [0.0, 1.0, 0.5],
-      mesh.cells.flatten());
-    torus.Translate([0.0, 4.0, 0.0]);
-    this.entities.push(torus);
+    //Create Room
+    for(var i = 0; i<3; i++) {
+      var room_piece = new Entity('Room_'+i, this.origin);
+      room_piece.Initialize(this.gl, shaderProgram, Meshes.room_piece, [0.3, 0.3, 0.3]);
+      room_piece.Rotate(i*120, [0.0, 1.0, 0.0]);
+      this.entities.push(room_piece);
+    }
 
-    console.log(Meshes.room);
-    var room = new Entity('Room', this.origin);
-    room.Initialize(this.gl, shaderProgram,
-      Meshes.room.vertices,
-      Meshes.room.normals,
-      [0.5, 0.5, 0.5],
-      Meshes.room.faces.flatten());
-    this.entities.push(room);
+    var instruments = ['drums', 'bass', 'melody'];
+    instruments.map((instr, i) => {
+      var room_piece = new Entity(instr+'_room', this.origin);
+      room_piece.Initialize(this.gl, shaderProgram, Meshes.room_piece, [0.1, 0.1, 0.1]);
+      room_piece.Rotate(i*120 + 60, [0.0, 1.0, 0.0]);
+      this.entities.push(room_piece);
+    });
+
+    var synthStandDrums = new Entity('drums_synth', this.origin);
+    synthStandDrums.Initialize(this.gl, shaderProgram, Meshes.stand, [0.1, 0.1, 0.1]);
+    synthStandDrums.Translate([6.73, 0, 11.67]);
+    synthStandDrums.Rotate(30, [0.0, 1.0, 0.0]);
+    this.entities.push(synthStandDrums);
 
     switch(instrument) {
       case 'drums':
-        this.camera.Initialize([-0.0, 4.0, -6.0], [-0.0, 0.0, -7.0]);
+        this.camera.Initialize([7.45, 3.0, 12.9], [0.0, 0.0, 0.0]);
         break;
       case 'bass':
-        this.camera.Initialize([4.0, 4.0, 4.0], [-0.0, 0.0, -7.0]);
+        this.camera.Initialize([4.0, 4.0, 4.0], [0.0, 0.0, 0.0]);
         break;
       case 'melody':
-        this.camera.Initialize([-4.0, 4.0, 4.0], [-0.0, 0.0, -7.0]);
+        this.camera.Initialize([-4.0, 4.0, 4.0], [0.0, 0.0, 0.0]);
         break;
     }
+  }
+
+  UpdateScene(time, song) {
+    //Repaint room pieces
+    var instruments = ['drums', 'bass', 'melody'];
+    instruments.map((instr) => {
+      if(song[instr].user !== '' && !this.activeUsers[instr]) {
+        this.activeUsers[instr] = true;
+        var piece = this.FindEntityByName(instr+'_room');
+        var finalColor = [0.87, 0.13, 0.18];
+        switch (instr) {
+          case 'bass':
+          finalColor = [0.07, 0.53, 0.16];
+          break;
+          case 'melody':
+          finalColor = [0.47, 0.12, 0.78];
+          break;
+        }
+        this.RemoveAnimationByName(instr+'_room_off');
+        var ani = new Animation(instr+'_room_on', piece, 'color',
+          [0.1, 0.1, 0.1], finalColor, 1500, time);
+        this.animations.push(ani);
+      }
+      else if(song[instr].user === '' && this.activeUsers[instr]) {
+        this.activeUsers[instr] = false;
+        var piece = this.FindEntityByName(instr+'_room');
+        var finalColor = [0.87, 0.13, 0.18];
+        switch (instr) {
+          case 'bass':
+          finalColor = [0.07, 0.53, 0.16];
+          break;
+          case 'melody':
+          finalColor = [0.47, 0.12, 0.78];
+          break;
+        }
+        this.RemoveAnimationByName(instr+'_room_on');
+        var ani = new Animation(instr+'_room_off', piece, 'color',
+          finalColor, [0.1, 0.1, 0.1], 1000, time);
+        this.animations.push(ani);
+      }
+    });
   }
 
   CanvasDimensions(w, h) {
@@ -90,18 +123,45 @@ export default class GraphicEngine {
     this.camera.SetAspectRatio(aspect);
   }
 
+  FindEntityByName(name) {
+    for(var i = 0; i<this.entities.length; i++) {
+      if (this.entities[i].name === name) {
+        return this.entities[i];
+      }
+    }
+    return null;
+  }
+
+  RemoveAnimationByName(name) {
+    for(var i = 0; i<this.animations.length; i++) {
+      if (this.animations[i].name === name) {
+        this.animations.splice(i, 1);
+        return true;
+      }
+    }
+    return false;
+  }
+
   CameraMovement(x, y) {
     this.camera.HandleMovement(x, y);
   }
 
   CalculateAnimations(time, deltaTime) {
-    this.entities[0].Rotate(1, [0.0, 0.0, 1.0]);
+    var toRemove = [];
+    for(var i = 0; i<this.animations.length; i++) {
+      if(this.animations[i].CalculateFrame(time)) {
+        toRemove.push(this.animations[i].name);
+      }
+    }
+    for(var i = 0; i<toRemove.length; i++) {
+      this.RemoveAnimationByName(toRemove[i]);
+    }
 
     //Update entities
     this.origin.Update(null);
   }
 
-  DrawScene(time) {
+  DrawScene() {
     //Prepare context
     this.gl.canvas.width = this.size.width;
     this.gl.canvas.height = this.size.height;
@@ -150,17 +210,6 @@ export default class GraphicEngine {
       this.gl.drawElements(this.gl.TRIANGLES, vertexCount, type, offset);
     });
   }
-
-  Render(now) {
-    now *= 0.001;
-    const deltaTime = now - this.then;
-    this.then = now;
-
-    this.CalculateAnimations(now, deltaTime);
-    this.DrawScene(now);
-
-    requestAnimationFrame(this.Render);
-  }
 }
 
 class Entity {
@@ -172,7 +221,10 @@ class Entity {
     this.worldMatrix = mat4.create();
   }
 
-  Initialize(gl, programInfo, positions, normals, color, indices) {
+  Initialize(gl, programInfo, mesh, color) {
+    var positions = mesh.vertices.flatten();
+    var normals = mesh.normals.flatten();
+    var indices = mesh.faces.flatten();
     this.programInfo = programInfo;
     this.meshColor = color;
     this.numComponents = indices.length;
@@ -195,6 +247,10 @@ class Entity {
 
   Scale(v) {
     mat4.scale(this.localMatrix, this.localMatrix, v);
+  }
+
+  ChangeColor(newColor) {
+    this.meshColor = newColor;
   }
 
   SetParent(parent) {
@@ -237,12 +293,45 @@ class Entity {
 }
 
 class Animation {
-  constructor(entity, op) {
+  constructor(name, entity, type, start, end, time, now) {
+    this.name = name;
     this.entity = entity;
+    this.type = type;
+    this.start = start;
+    this.end = end;
+    this.time = time;
+    this.startTime = now;
+  }
+
+  CalculateFrame(now) {
+    switch (this.type) {
+      case 'color':
+        return this.HandleColorAnimation(now);
+        break;
+      case 'position':
+        return this.HandlePositionAnimation(now);
+        break;
+    }
+  }
+
+  HandleColorAnimation(now) {
+    var i = (now - this.startTime) / this.time;
+    if (i<1) {
+      var color = vec3.create();
+      vec3.lerp(color, this.start, this.end, i);
+      this.entity.ChangeColor(color);
+      return false;
+    }
+    else {
+      this.entity.ChangeColor(this.end);
+      return true;
+    }
+  }
+
+  HandlePositionAnimation(now) {
+
   }
 }
-
-class Light {}
 
 class Camera {
   constructor(fov, aspect) {
@@ -262,6 +351,26 @@ class Camera {
     this.position = position;
     this.yaw = 0;
     this.pitch = 180;
+
+    var v = vec3.create();
+    vec3.subtract(v, target, position);
+    var l = vec3.length(v);
+
+    this.pitch = (Math.asin(v[1] / l) * 57.2958) + 180;
+    if (Math.abs(v[2]) < 0.00001) {
+      if(v[0] > 0) {
+        this.yaw = 180;
+      }
+      else if (v[0] < 0) {
+        this.yaw = -180;
+      }
+      else {
+        this.yaw = 0;
+      }
+    }
+    else {
+      this.yaw = Math.atan2(v[0], v[2]) * 57.2958;
+    }
   }
 
   HandleMovement(x, y) {
@@ -299,7 +408,7 @@ class Camera {
 
   GetProjectionMatrix() {
     if (this.projNeedsUpdate) {
-      mat4.perspective(this.projectionMatrix, this.fov, this.aspect, 0.1, 1000);
+      mat4.perspective(this.projectionMatrix, this.fov, this.aspect, 0.3, 1000);
       this.projNeedsUpdate = false;
     }
     return this.projectionMatrix;

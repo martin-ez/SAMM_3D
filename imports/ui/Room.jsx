@@ -15,6 +15,7 @@ class Room extends Component {
     this.EngineReady = this.EngineReady.bind(this);
     this.HandlePointerLockChange = this.HandlePointerLockChange.bind(this);
     this.HandleMouseMove = this.HandleMouseMove.bind(this);
+    this.Render = this.Render.bind(this);
     this.canvasRef = React.createRef();
     this.sceneReady = false;
     this.pointerLock = false;
@@ -76,9 +77,23 @@ class Room extends Component {
       this.EngagePointerLock(this.canvasRef);
       this.state.graphicEngine.SetContext(this.canvasRef);
       this.state.graphicEngine.CreateScene(this.state.instrument);
-      this.state.graphicEngine.Render();
+      this.Render();
       this.sceneReady = true;
     }
+    if(this.state.view === 'Scene') {
+
+    }
+  }
+
+  Render(now) {
+    const deltaTime = now - this.then;
+    this.then = now;
+
+    this.state.graphicEngine.UpdateScene(now, this.props.song);
+    this.state.graphicEngine.CalculateAnimations(now, deltaTime);
+    this.state.graphicEngine.DrawScene();
+
+    requestAnimationFrame(this.Render);
   }
 
   componentWillUnmount() {
