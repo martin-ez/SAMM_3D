@@ -106,6 +106,7 @@ export default class GraphicEngine {
   CreateDrumsControl(stand, shaderProgram) {
     var cube = PrimitiveCube(0.08, 0.1, 0.18, 1, 1, 1);
     var beatCube = PrimitiveCube(0.131, 0.05, 1.2, 1, 1, 1);
+    var guideCube = PrimitiveCube(0.524, 0.02, 1.2, 1, 1, 1);
     var mesh = {
       'vertices': cube.positions,
       'normals': cube.normals,
@@ -115,6 +116,11 @@ export default class GraphicEngine {
       'vertices': beatCube.positions,
       'normals': beatCube.normals,
       'faces': beatCube.cells
+    }
+    var guideMesh = {
+      'vertices': guideCube.positions,
+      'normals': guideCube.normals,
+      'faces': guideCube.cells
     }
     var sin45 = Math.sin(45 * Math.PI / 180.0);
     var cos45 = Math.cos(45 * Math.PI / 180.0);
@@ -136,13 +142,29 @@ export default class GraphicEngine {
         this.pickingEntities.push(pickingEntity);
       }
     }
+
+    //Beat indicator and guides
     var pos = wHalf - (w*8);
-    var beatSelector = new Entity('BeatIndicator', stand);
-    beatSelector.Initialize(this.gl, shaderProgram, beatMesh, [0.81, 0.153, 0.204]);
-    beatSelector.Translate([pos, 2.0, 0.0]);
-    beatSelector.Rotate(45, [1.0, 0.0, 0.0]);
-    beatSelector.Translate([w*5, 0.0, 0.0]);
-    this.entities.push(beatSelector);
+    var beatIndicator = new Entity('BeatIndicator', stand);
+    var beatColor = vec3.create();
+    vec3.subtract(beatColor, this.drumsColor, [0.13, 0.13, 0.13]);
+    beatIndicator.Initialize(this.gl, shaderProgram, beatMesh, beatColor);
+    beatIndicator.Translate([pos, 2.0, 0.0]);
+    beatIndicator.Rotate(45, [1.0, 0.0, 0.0]);
+    beatIndicator.Translate([w*5, 0.0, 0.0]);
+    this.entities.push(beatIndicator);
+
+    var guide1 = new Entity('Guide1', stand);
+    guide1.Initialize(this.gl, shaderProgram, guideMesh, [0.2, 0.2, 0.2]);
+    guide1.Translate([w*6.0, 2.0, 0.0]);
+    guide1.Rotate(45, [1.0, 0.0, 0.0]);
+    this.entities.push(guide1);
+
+    var guide2 = new Entity('Guide2', stand);
+    guide2.Initialize(this.gl, shaderProgram, guideMesh, [0.2, 0.2, 0.2]);
+    guide2.Translate([w*-2.0, 2.0, 0.0]);
+    guide2.Rotate(45, [1.0, 0.0, 0.0]);
+    this.entities.push(guide2);
   }
 
   BeatUpdate(beat, bar, timeBetween) {

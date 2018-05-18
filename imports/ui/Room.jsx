@@ -5,6 +5,7 @@ import SoundEngine from '../engines/sound/SoundEngine.js';
 import GraphicEngine from '../engines/graphics/GraphicEngine.js';
 
 import InstrumentSelect from './InstrumentSelect.jsx';
+import SongInfo from './SongInfo.jsx';
 
 import './css/RoomStyle.css';
 
@@ -23,8 +24,6 @@ class Room extends Component {
     this.pointerLock = false;
     this.GraphicBeatUpdate = false;
     this.tInterval = 0.0;
-    this.beat = -1;
-    this.bar = 0;
     this.state = {
       view: 'InstrumentSelect',
       instrument: '',
@@ -62,6 +61,10 @@ class Room extends Component {
             <div className="chPiece On"></div>
             <div className="chPiece"></div>
           </div>
+          <SongInfo
+            bar={this.state.bar}
+            song={this.props.song}
+            instrument={this.state.instrument}/>
         </div>
       );
     }
@@ -73,8 +76,8 @@ class Room extends Component {
     this.tInterval = tInterval;
     this.interval = setInterval(() => {
       if(this.state.playing) {
-        var currentBar = this.bar;
-        let currentBeat = this.beat;
+        var currentBar = this.state.bar;
+        let currentBeat = this.state.beat;
         currentBeat++;
         if (currentBeat === 16) {
           currentBeat = 0;
@@ -85,8 +88,10 @@ class Room extends Component {
         }
         this.PlaySounds(currentBeat, currentBar);
         this.GraphicBeatUpdate = true;
-        this.beat = currentBeat;
-        this.bar = currentBar;
+        this.setState({
+          beat: currentBeat,
+          bar: currentBar
+        });
       }
     }, tInterval);
   }
@@ -106,7 +111,7 @@ class Room extends Component {
     const deltaTime = now - this.then;
     this.then = now;
     if(this.GraphicBeatUpdate) {
-      this.state.graphicEngine.BeatUpdate(this.beat, this.bar, this.tInterval);
+      this.state.graphicEngine.BeatUpdate(this.state.beat, this.state.bar, this.tInterval);
       this.GraphicBeatUpdate = false;
     }
     this.state.graphicEngine.UpdateScene(this.props.song);
