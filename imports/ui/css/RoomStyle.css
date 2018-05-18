@@ -4,7 +4,25 @@
   height: 100vh;
 }
 
-canvas {
+canvas
+{
   width: 100%;
   height: 100%;
+}
+
+#Room .crosshair
+{
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  top: calc(50vh - 4px);
+  left: calc(50vw - 4px);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-auto-rows: 1fr 1fr 1fr;
+}
+
+#Room .crosshair .chPiece.On
+{
+  background-color: black;
 }

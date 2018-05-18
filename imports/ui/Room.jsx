@@ -15,10 +15,16 @@ class Room extends Component {
     this.EngineReady = this.EngineReady.bind(this);
     this.HandlePointerLockChange = this.HandlePointerLockChange.bind(this);
     this.HandleMouseMove = this.HandleMouseMove.bind(this);
+    this.HandleClick = this.HandleClick.bind(this);
     this.Render = this.Render.bind(this);
+    this.UpdatePattern = this.UpdatePattern.bind(this);
     this.canvasRef = React.createRef();
     this.sceneReady = false;
     this.pointerLock = false;
+    this.GraphicBeatUpdate = false;
+    this.tInterval = 0.0;
+    this.beat = -1;
+    this.bar = 0;
     this.state = {
       view: 'InstrumentSelect',
       instrument: '',
@@ -45,6 +51,17 @@ class Room extends Component {
           <canvas ref={(c) => {this.canvasRef = c;}} onClick={() => this.EngagePointerLock()}>
             This browser don't support WebGL.
           </canvas>
+          <div className="crosshair">
+            <div className="chPiece"></div>
+            <div className="chPiece On"></div>
+            <div className="chPiece"></div>
+            <div className="chPiece On"></div>
+            <div className="chPiece"></div>
+            <div className="chPiece On"></div>
+            <div className="chPiece"></div>
+            <div className="chPiece On"></div>
+            <div className="chPiece"></div>
+          </div>
         </div>
       );
     }
@@ -53,10 +70,11 @@ class Room extends Component {
   componentDidMount() {
     window.addEventListener('resize', this.updateWindowDimensions);
     var tInterval = 60000 / (this.props.song.tempo * 4);
+    this.tInterval = tInterval;
     this.interval = setInterval(() => {
       if(this.state.playing) {
-        var currentBar = this.state.bar;
-        let currentBeat = this.state.beat;
+        var currentBar = this.bar;
+        let currentBeat = this.beat;
         currentBeat++;
         if (currentBeat === 16) {
           currentBeat = 0;
@@ -66,7 +84,9 @@ class Room extends Component {
           }
         }
         this.PlaySounds(currentBeat, currentBar);
-        this.setState({beat: currentBeat, bar: currentBar});
+        this.GraphicBeatUpdate = true;
+        this.beat = currentBeat;
+        this.bar = currentBar;
       }
     }, tInterval);
   }
@@ -80,16 +100,16 @@ class Room extends Component {
       this.Render();
       this.sceneReady = true;
     }
-    if(this.state.view === 'Scene') {
-
-    }
   }
 
   Render(now) {
     const deltaTime = now - this.then;
     this.then = now;
-
-    this.state.graphicEngine.UpdateScene(now, this.props.song);
+    if(this.GraphicBeatUpdate) {
+      this.state.graphicEngine.BeatUpdate(this.beat, this.bar, this.tInterval);
+      this.GraphicBeatUpdate = false;
+    }
+    this.state.graphicEngine.UpdateScene(this.props.song);
     this.state.graphicEngine.CalculateAnimations(now, deltaTime);
     this.state.graphicEngine.DrawScene();
 
@@ -103,6 +123,12 @@ class Room extends Component {
   updateWindowDimensions() {
     if(this.state.graphicEngine) {
       this.state.graphicEngine.CanvasDimensions(window.innerWidth, window.innerHeight);
+    }
+  }
+
+  HandleClick() {
+    if(this.state.graphicEngine) {
+      this.state.graphicEngine.HandleClick(this.props.song, this.UpdatePattern);
     }
   }
 
@@ -120,6 +146,7 @@ class Room extends Component {
       document.addEventListener('mozpointerlockchange', this.HandlePointerLockChange, false);
       document.addEventListener('webkitpointerlockchange', this.HandlePointerLockChange, false);
       document.addEventListener('mousemove', this.HandleMouseMove, false);
+      document.addEventListener('click', this.HandleClick, false);
     }
   }
 
@@ -130,10 +157,12 @@ class Room extends Component {
       // Pointer locked
       this.pointerLock = true;
       document.addEventListener('mousemove', this.HandleMouseMove, false);
+      document.addEventListener('click', this.HandleClick, false);
     } else {
       // Pointer unlocked
       this.pointerLock = false;
       document.removeEventListener('mousemove', this.HandleMouseMove, false);
+      document.removeEventListener('click', this.HandleClick, false);
     }
   }
 
