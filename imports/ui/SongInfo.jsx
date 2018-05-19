@@ -94,11 +94,11 @@ class SongInfo extends Component {
               you should do. Just have fun and find what sequences you like.
               <br/><br/>
               If you really want some tips to impress your friends:
-              <ul>
-                <li>Put the strong sounds (Kick and Snare) in some of the down and back beats.</li>
-                <li>Put the hihats in either the back or off beats.</li>
-              </ul>
             </p>
+            <ul>
+              <li>Put the strong sounds (Kick and Snare) in some of the down and back beats.</li>
+              <li>Put the hihats in either the back or off beats.</li>
+            </ul>
             <br/>
           </div>
         );
@@ -119,12 +119,12 @@ class SongInfo extends Component {
               you should do. Just have fun and find what sequences you like.
               <br/><br/>
               If you really want some tips to impress your friends:
-              <ul>
-                <li>Make the root note sound on the down beat.</li>
-                <li>Turn some notes off.</li>
-                <li>Try alternating between the root and the octave.</li>
-              </ul>
             </p>
+            <ul>
+              <li>Make the root note sound on the down beat.</li>
+              <li>Turn some notes off.</li>
+              <li>Try alternating between the root and the octave.</li>
+            </ul>
             <br/>
           </div>
         );
@@ -145,12 +145,12 @@ class SongInfo extends Component {
               you should do. Just have fun and find what sequences you like.
               <br/><br/>
               If you really want some tips to impress your friends:
-              <ul>
-                <li>Create alternating sequences going up and down.</li>
-                <li>Leave some notes off for dramatic silences.</li>
-                <li>Try putting a different sequence in each bar.</li>
-              </ul>
             </p>
+            <ul>
+              <li>Create alternating sequences going up and down.</li>
+              <li>Leave some notes off for dramatic silences.</li>
+              <li>Try putting a different sequence in each bar.</li>
+            </ul>
             <br/>
           </div>
         );

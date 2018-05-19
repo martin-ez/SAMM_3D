@@ -1,6 +1,6 @@
 let songInstance = null;
 import Soundfont from 'soundfont-player';
-import { Octavian, Note } from 'octavian';
+import {Octavian, Note} from 'octavian';
 import SoundLoader from './SoundLoader.js';
 
 export default class SoundEngine {
@@ -39,19 +39,19 @@ export default class SoundEngine {
   }
 
   LoadSynths() {
-    Soundfont.instrument(this.context, this.song.backgroundSound).then(function (piano) {
+    Soundfont.instrument(this.context, this.song.backgroundSound).then(function(piano) {
       this.bg.piano = piano;
       this.bg.piano.out.gain.value = 1.2;
       this.bg.ready = true;
       this.CheckIfReady();
     }.bind(this));
-    Soundfont.instrument(this.context, "lead_8_bass__lead").then(function (synth) {
+    Soundfont.instrument(this.context, 'lead_8_bass__lead').then(function(synth) {
       this.bass.synth = synth;
       this.bass.synth.out.gain.value = 3;
       this.bass.ready = true;
       this.CheckIfReady();
     }.bind(this));
-    Soundfont.instrument(this.context, "alto_sax").then(function (synth) {
+    Soundfont.instrument(this.context, 'alto_sax').then(function(synth) {
       this.melody.synth = synth;
       this.melody.synth.out.gain.value = 3;
       this.melody.ready = true;
@@ -60,8 +60,8 @@ export default class SoundEngine {
   }
 
   FinishedLoadingDrums(bufferList) {
-    var names = ["kick", "snare", "hihat_close", "hihat_open", "clap"];
-    for(var i = 0; i<5; i++) {
+    var names = ['kick', 'snare', 'hihat_close', 'hihat_open', 'clap'];
+    for (var i = 0; i < 5; i++) {
       this.drums.buffers[i] = bufferList[names[i]];
     }
     this.drums.masterGain = this.context.createGain();
@@ -71,14 +71,14 @@ export default class SoundEngine {
       this.drums.gains[i] = this.context.createGain();
       this.drums.gains[i].connect(this.drums.masterGain);
     }
-    if(this.drums.buffers.length != 0) {
+    if (this.drums.buffers.length != 0) {
       this.drums.ready = true;
       this.CheckIfReady();
     }
   }
 
   CheckIfReady() {
-    if(this.bg.ready && this.drums.ready && this.bass.ready && this.melody.ready) {
+    if (this.bg.ready && this.drums.ready && this.bass.ready && this.melody.ready) {
       this.readyCallback();
     }
   }
@@ -88,16 +88,18 @@ export default class SoundEngine {
   }
 
   PlayBGSounds(bar) {
-    if(this.bg.ready) {
-      var s = (60*8) / (this.song.tempo);
+    if (this.bg.ready) {
+      var s = (60 * 8) / (this.song.tempo);
       var octave = 4;
-      var rootStr = this.song.key+octave;
+      var rootStr = this.song.key + octave;
       var note = new Note(rootStr);
       note = this.GetNoteBar(note, bar);
       var freq = this.GetFrequenciesBar(note, bar);
-      var dur = (60*4)/this.song.tempo;
-      for(var i = 0; i<freq.length; i++) {
-        this.bg.piano.play(freq[i], this.context.currentTime, {duration: dur}, {soundfont: 'FluidR3_GM'});
+      var dur = (60 * 4) / this.song.tempo;
+      for (var i = 0; i < freq.length; i++) {
+        this.bg.piano.play(freq[i], this.context.currentTime, {
+          duration: dur
+        }, {soundfont: 'FluidR3_GM'});
       }
     }
   }
@@ -110,8 +112,8 @@ export default class SoundEngine {
       this.drums.sources[i] = this.context.createBufferSource();
       this.drums.sources[i].buffer = this.drums.buffers[i];
       var g = i;
-      if (i>2) {
-        g = i-1;
+      if (i > 2) {
+        g = i - 1;
       }
       this.drums.sources[i].connect(this.drums.gains[g]);
       this.drums.sources[i].start(0);
@@ -119,28 +121,33 @@ export default class SoundEngine {
   }
 
   PlayBassSound(h, bar) {
-    if(this.bass.ready) {
-      var s = 60 / (this.song.tempo*8);
+    if (this.bass.ready) {
+      var s = 60 / (this.song.tempo * 8);
       var octave = 3;
-      var rootStr = this.song.key+octave;
+      var rootStr = this.song.key + octave;
       var note = new Note(rootStr);
       note = this.GetNoteBar(note, bar);
       note = this.GetNoteInterval(note, bar, h);
-      var noteName = note.letter+(note.modifier?"#":"")+note.octave;
-      this.bass.synth.play(noteName, this.context.currentTime, {duration: s}, {soundfont: 'FluidR3_GM'});
+      var noteName = note.letter + (
+        note.modifier
+        ? '#'
+        : '') + note.octave;
+      this.bass.synth.play(noteName, this.context.currentTime, {
+        duration: s
+      }, {soundfont: 'FluidR3_GM'});
     }
   }
 
   PlayMelodySound(h) {
-    if(this.melody.ready) {
-      if(h==='-') {
+    if (this.melody.ready) {
+      if (h === '-') {
         this.melody.synth.stop();
       } else {
         var octave = 3;
-        var rootStr = this.song.key+octave;
+        var rootStr = this.song.key + octave;
         var note = new Note(rootStr);
         note = this.GetPentatonicNote(note, h);
-        var noteName = note.letter+(note.modifier?"#":"")+note.octave;
+        var noteName = note.letter + (note.modifier? '#': '') + note.octave;
         this.melody.synth.play(noteName);
       }
     }
@@ -149,122 +156,121 @@ export default class SoundEngine {
   GetNoteBar(rootNote, bar) {
     var note = rootNote;
     var chord = Math.abs(this.song.progression[bar]);
-    switch(chord) {
+    switch (chord) {
       case 2:
-      note = note.majorSecond();
-      break;
+        note = note.majorSecond();
+        break;
       case 3:
-      if(!this.song.minor) {
-        note = note.majorThird();
-      } else {
-        note = note.minorThird();
-      }
-      break;
+        if (!this.song.minor) {
+          note = note.majorThird();
+        } else {
+          note = note.minorThird();
+        }
+        break;
       case 4:
-      note = note.perfectFourth();
-      break;
+        note = note.perfectFourth();
+        break;
       case 5:
-      note = note.perfectFifth();
-      break;
+        note = note.perfectFifth();
+        break;
       case 6:
-      if(!this.song.minor) {
-        note = note.majorSixth();
-      } else {
-        note = note.minorSixth();
-      }
-      break;
+        if (!this.song.minor) {
+          note = note.majorSixth();
+        } else {
+          note = note.minorSixth();
+        }
+        break;
       case 7:
-      if(!this.song.minor) {
-        note = note.majorSeventh();
-      } else {
-        note = note.minorSeventh();
-      }
-      break;
+        if (!this.song.minor) {
+          note = note.majorSeventh();
+        } else {
+          note = note.minorSeventh();
+        }
+        break;
     }
     return note;
   }
 
   GetFrequenciesBar(note, bar) {
     var freq = [];
-    freq.push(note.letter+(note.modifier?"#":"")+"4");
+    freq.push(note.letter + (note.modifier? '#': '') + '4');
     var note2 = note.minorThird();
-    if(this.song.progression[bar] > 0) {
+    if (this.song.progression[bar] > 0) {
       var note2 = note.majorThird();
     }
-    freq.push(note2.letter+(note2.modifier?"#":"")+"4");
+    freq.push(note2.letter + (note2.modifier? '#': '') + '4');
     note2 = note.perfectFifth();
-    freq.push(note2.letter+(note2.modifier?"#":"")+"4");
-    freq.push(note.letter+(note.modifier?"#":"")+"3");
+    freq.push(note2.letter + (note2.modifier? '#': '') + '4');
+    freq.push(note.letter + (note.modifier? '#': '') + '3');
     return freq;
   }
 
   GetNoteInterval(note, bar, interval) {
-    if(interval === 0.5) {
+    if (interval === 0.5) {
       return note;
     }
     var minor = this.song.progression[bar] < 0;
-    switch(interval) {
+    switch (interval) {
       case 0:
-      note = note.downOctave();
-      break;
+        note = note.downOctave();
+        break;
       case 0.125:
-      if(!minor) {
-        note = note.majorThird().downOctave();
-      } else {
-        note = note.minorThird().downOctave();
-      }
-      break;
-      break;
+        if (!minor) {
+          note = note.majorThird().downOctave();
+        } else {
+          note = note.minorThird().downOctave();
+        }
+        break;
       case 0.25:
-      note = note.perfectFifth().downOctave();
-      break;
+        note = note.perfectFifth().downOctave();
+        break;
       case 0.375:
-      if(!minor) {
-        note = note.majorSixth().downOctave();
-      } else {
-        note = note.minorSeventh().downOctave();
-      }
-      break;
+        if (!minor) {
+          note = note.majorSixth().downOctave();
+        } else {
+          note = note.minorSeventh().downOctave();
+        }
+        break;
       case 0.625:
-      if(!minor) {
-        note = note.majorThird();
-      } else {
-        note = note.minorThird();
-      }
-      break;
+        if (!minor) {
+          note = note.majorThird();
+        } else {
+          note = note.minorThird();
+        }
+        break;
       case 0.75:
-      note = note.perfectFifth();
-      break;
+        note = note.perfectFifth();
+        break;
       case 0.875:
-      if(!minor) {
-        note = note.majorSixth();
-      } else {
-        note = note.minorSeventh();
-      }
-      break;
+        if (!minor) {
+          note = note.majorSixth();
+        } else {
+          note = note.minorSeventh();
+        }
+        break;
       case 1:
-      note = note.perfectOctave();
-      break;
+        note = note.perfectOctave();
+        break;
     }
     return note;
   }
 
   GetPentatonicNote(note, h) {
-    var pitch = (9-h);
+    var pitch = (9 - h);
     var noteToPlay = note;
     switch (pitch) {
       case 0:
         noteToPlay = note;
         break;
       case 1:
-        if(!this.song.minor) {
+        if (!this.song.minor) {
           noteToPlay = note.majorSecond();
         } else {
           noteToPlay = note.minorThird();
         }
         break;
       case 2:
-        if(!this.song.minor) {
+        if (!this.song.minor) {
           noteToPlay = note.majorThird();
         } else {
           noteToPlay = note.perfectFourth();
@@ -274,7 +280,7 @@ export default class SoundEngine {
         noteToPlay = note.perfectFifth();
         break;
       case 4:
-        if(!this.song.minor) {
+        if (!this.song.minor) {
           noteToPlay = note.majorSixth();
         } else {
           noteToPlay = note.minorSeventh();
@@ -284,14 +290,14 @@ export default class SoundEngine {
         noteToPlay = note.perfectOctave();
         break;
       case 6:
-        if(!this.song.minor) {
+        if (!this.song.minor) {
           noteToPlay = note.perfectOctave().majorSecond();
         } else {
           noteToPlay = note.perfectOctave().minorThird();
         }
         break;
       case 7:
-        if(!this.song.minor) {
+        if (!this.song.minor) {
           noteToPlay = note.perfectOctave().majorThird();
         } else {
           noteToPlay = note.perfectOctave().perfectFourth();

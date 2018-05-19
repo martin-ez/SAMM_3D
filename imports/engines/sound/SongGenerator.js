@@ -4,14 +4,14 @@ function SongGenerator() {
 SongGenerator.prototype.CreateNewSong = function() {
   var newSong = {
     tempo: 0,
-    key: "",
+    key: '',
     minor: false,
     progression: [],
     progressionName: [],
-    backgroundSound: "",
-    band: "",
+    backgroundSound: '',
+    band: '',
     drums: {
-      user: "",
+      user: '',
       pattern: [
         ['-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-'],
         ['-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-'],
@@ -22,12 +22,12 @@ SongGenerator.prototype.CreateNewSong = function() {
       volume: [1, 1, 1, 1]
     },
     bass: {
-      user: "",
+      user: '',
       pattern: [0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5],
       mode: 16
     },
     melody: {
-      user: "",
+      user: '',
       pattern: [
         ['-','-','-','-','-','-','-','-'],
         ['-','-','-','-','-','-','-','-'],
@@ -70,7 +70,7 @@ SongGenerator.prototype.CreateProgression = function() {
 
 SongGenerator.prototype.ConvertProgression = function(progression, key, minor) {
   import { Octavian, Note } from 'octavian';
-  var rootStr = key+"4";
+  var rootStr = key+'4';
   return progression.map(function(c, bar){
     var note = new Note(rootStr);
     var chord = Math.abs(progression[bar]);
@@ -106,46 +106,46 @@ SongGenerator.prototype.ConvertProgression = function(progression, key, minor) {
       }
       break;
     }
-    return note.letter+(note.modifier?"#":"")+(c<0?"m":"");
+    return note.letter+(note.modifier?'#':'')+(c<0?'m':'');
   });
 }
 
 SongGenerator.prototype.CreateBandName = function() {
   var colors =
-  ["AliceBlue", "AntiqueWhite", "Aqua", "Aquamarine", "Azure",
-  "Beige","Bisque","Black","BlanchedAlmond","Blue","BlueViolet","Brown","BurlyWood",
-  "CadetBlue","Chartreuse","Chocolate","Coral","CornflowerBlue","Cornsilk","Crimson","Cyan",
-  "DeepPink","DeepSkyBlue","DimGray","DimGrey","DodgerBlue",
-  "FireBrick","FloralWhite","ForestGreen","Fuchsia",
-  "Gainsboro","GhostWhite",
-  "Gold","GoldenRod","Gray","Grey","Green","GreenYellow",
-  "HoneyDew","HotPink",
-  "IndianRed","Indigo","Ivory",
-  "Khaki",
-  "Lavender","LavenderBlush","LawnGreen","LemonChiffon","Lime","LimeGreen","Linen",
-  "Magenta",
-  "Maroon","MidnightBlue","MintCream","MistyRose","Moccasin",
-  "NavajoWhite","Navy",
-  "OldLace","Olive","OliveDrab","Orange","OrangeRed","Orchid",
-  "PapayaWhip","PeachPuff","Peru","Pink","Plum","PowderBlue","Purple",
-  "Red","RosyBrown","RoyalBlue",
-  "SaddleBrown","Salmon","SandyBrown","SeaGreen","SeaShell","Sienna","Silver","SkyBlue","SlateBlue","SlateGray","SlateGrey","Snow","SpringGreen","SteelBlue",
-  "Tan","Teal","Thistle","Tomato","Turquoise",
-  "Violet",
-  "Wheat","White","WhiteSmoke",
-  "Yellow","YellowGreen"];
+  ['AliceBlue', 'AntiqueWhite', 'Aqua', 'Aquamarine', 'Azure',
+  'Beige','Bisque','Black','BlanchedAlmond','Blue','BlueViolet','Brown','BurlyWood',
+  'CadetBlue','Chartreuse','Chocolate','Coral','CornflowerBlue','Cornsilk','Crimson','Cyan',
+  'DeepPink','DeepSkyBlue','DimGray','DimGrey','DodgerBlue',
+  'FireBrick','FloralWhite','ForestGreen','Fuchsia',
+  'Gainsboro','GhostWhite',
+  'Gold','GoldenRod','Gray','Grey','Green','GreenYellow',
+  'HoneyDew','HotPink',
+  'IndianRed','Indigo','Ivory',
+  'Khaki',
+  'Lavender','LavenderBlush','LawnGreen','LemonChiffon','Lime','LimeGreen','Linen',
+  'Magenta',
+  'Maroon','MidnightBlue','MintCream','MistyRose','Moccasin',
+  'NavajoWhite','Navy',
+  'OldLace','Olive','OliveDrab','Orange','OrangeRed','Orchid',
+  'PapayaWhip','PeachPuff','Peru','Pink','Plum','PowderBlue','Purple',
+  'Red','RosyBrown','RoyalBlue',
+  'SaddleBrown','Salmon','SandyBrown','SeaGreen','SeaShell','Sienna','Silver','SkyBlue','SlateBlue','SlateGray','SlateGrey','Snow','SpringGreen','SteelBlue',
+  'Tan','Teal','Thistle','Tomato','Turquoise',
+  'Violet',
+  'Wheat','White','WhiteSmoke',
+  'Yellow','YellowGreen'];
   var animals = require('animals');
   var a = animals();
-  return "The " +colors[Math.floor(Math.random() * colors.length)] +" "+a.charAt(0).toUpperCase() + a.slice(1)+"s";
+  return 'The ' +colors[Math.floor(Math.random() * colors.length)] +' '+a.charAt(0).toUpperCase() + a.slice(1)+'s';
 }
 
 SongGenerator.prototype.RandomBGSound = function() {
   var sounds =
-  ["pad_1_new_age","pad_2_warm","pad_3_polysynth","pad_4_choir","pad_5_bowed",
-  "pad_6_metallic","pad_7_halo","synth_brass_1","synth_brass_2",
-  "synth_choir","voice_oohs","reed_organ","brass_section","church_organ",
-  "accordion","acoustic_guitar_nylon","acoustic_guitar_steel",
-  "acoustic_grand_piano"];
+  ['pad_1_new_age','pad_2_warm','pad_3_polysynth','pad_4_choir','pad_5_bowed',
+  'pad_6_metallic','pad_7_halo','synth_brass_1','synth_brass_2',
+  'synth_choir','voice_oohs','reed_organ','brass_section','church_organ',
+  'accordion','acoustic_guitar_nylon','acoustic_guitar_steel',
+  'acoustic_grand_piano'];
   return sounds[Math.floor(Math.random() * sounds.length)];
 }
 

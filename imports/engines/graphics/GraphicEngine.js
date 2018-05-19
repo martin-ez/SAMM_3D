@@ -24,6 +24,7 @@ export default class GraphicEngine {
       this.animations = [];
       this.pickingEntities = [];
       this.pads = {};
+      this.bassBars = {};
       this.offPad = [0.75, 0.75, 0.75];
       this.drumsColor = [0.87, 0.13, 0.18];
       this.bassColor = [0.07, 0.53, 0.16];
@@ -96,6 +97,7 @@ export default class GraphicEngine {
         break;
       case 'bass':
         this.camera.Initialize([-7.45, 3.0, -12.9], [0.0, 0.0, 0.0]);
+        this.CreateBassControl(synthStandBass, shaderProgram);
         break;
       case 'melody':
         this.camera.Initialize([-7.45, 3.0, 12.9], [0.0, 0.0, 0.0]);
@@ -167,23 +169,102 @@ export default class GraphicEngine {
     this.entities.push(guide2);
   }
 
+  CreateBassControl(stand, shaderProgram) {
+    var cube = PrimitiveCube(0.08, 0.1, 0.04, 1, 1, 1);
+    var beatCube = PrimitiveCube(0.131, 0.05, 1.2, 1, 1, 1);
+    var guideCube = PrimitiveCube(0.524, 0.02, 1.2, 1, 1, 1);
+    var bar = PrimitiveCube(1, 1, 1, 1, 1, 1);
+    var mesh = {
+      'vertices': cube.positions,
+      'normals': cube.normals,
+      'faces': cube.cells
+    }
+    var beatMesh = {
+      'vertices': beatCube.positions,
+      'normals': beatCube.normals,
+      'faces': beatCube.cells
+    }
+    var guideMesh = {
+      'vertices': guideCube.positions,
+      'normals': guideCube.normals,
+      'faces': guideCube.cells
+    }
+    var barMesh = {
+      'vertices': bar.positions,
+      'normals': bar.normals,
+      'faces': bar.cells
+    }
+    var sin45 = Math.sin(45 * Math.PI / 180.0);
+    var cos45 = Math.cos(45 * Math.PI / 180.0);
+    var wHalf = 2.23 / 2.0;
+    var w = 2.23 / 17.0;
+    var l = 1.23 / 10.0;
+    for(var i = 0; i<9; i++) {
+      for(var j = 0; j<16; j++) {
+        var x = -wHalf + (w*(j+1));
+        var y = 1.565 + (sin45*(l*(i+1)));
+        var z = 0.435 - (cos45*(l*(i+1)));
+        var pad = new Entity('bassPad_'+i+':'+j, stand);
+        pad.Initialize(this.gl, shaderProgram, mesh, this.offPad);
+        pad.Translate([x, y, z]);
+        pad.Rotate(45, [1.0, 0.0, 0.0]);
+        this.entities.push(pad);
+        this.pads[i+':'+j] = pad;
+        var value = i*0.125;
+        var pickingEntity = new PickingEntity(value+':'+j, pad, [0.08, 0.02, 0.04]);
+        this.pickingEntities.push(pickingEntity);
+      }
+    }
+
+    //Pitch indicator
+    for(var k = 0; k<16; k++) {
+      var bassBar = new Entity('bassBar_'+k, stand);
+      var x = -wHalf + (w*(k+1));
+      var y = 2;
+      var z = 0;
+      bassBar.Initialize(this.gl, shaderProgram, barMesh, this.bassColor);
+      bassBar.Translate([x, y, z]);
+      bassBar.Rotate(45, [1.0, 0.0, 0.0]);
+      this.entities.push(bassBar);
+      this.bassBars[k+':'] = bassBar;
+    }
+
+    //Beat indicator and guides
+    var pos = wHalf - (w*8);
+    var beatIndicator = new Entity('BeatIndicator', stand);
+    var beatColor = vec3.create();
+    vec3.subtract(beatColor, this.bassColor, [0.13, 0.13, 0.13]);
+    beatIndicator.Initialize(this.gl, shaderProgram, beatMesh, beatColor);
+    beatIndicator.Translate([pos, 2.0, 0.0]);
+    beatIndicator.Rotate(45, [1.0, 0.0, 0.0]);
+    beatIndicator.Translate([w*5, 0.0, 0.0]);
+    this.entities.push(beatIndicator);
+
+    var guide1 = new Entity('Guide1', stand);
+    guide1.Initialize(this.gl, shaderProgram, guideMesh, [0.2, 0.2, 0.2]);
+    guide1.Translate([w*6.0, 2.0, 0.0]);
+    guide1.Rotate(45, [1.0, 0.0, 0.0]);
+    this.entities.push(guide1);
+
+    var guide2 = new Entity('Guide2', stand);
+    guide2.Initialize(this.gl, shaderProgram, guideMesh, [0.2, 0.2, 0.2]);
+    guide2.Translate([w*-2.0, 2.0, 0.0]);
+    guide2.Rotate(45, [1.0, 0.0, 0.0]);
+    this.entities.push(guide2);
+  }
+
   BeatUpdate(beat, bar, timeBetween) {
     var beatIndicator = this.FindEntityByName('BeatIndicator');
     var wHalf = 2.23 / 2.0;
     var w = 2.23 / 17.0;
-    switch(this.instrument) {
-      case 'drums':
-        var x = -wHalf + (w*(beat+1));
-        beatIndicator.ResetLocalMatrix();
-        beatIndicator.Translate([x, 2.0, 0.0]);
-        beatIndicator.Rotate(45, [1.0, 0.0, 0.0]);
-        break;
-      case 'bass':
-        //TODO
-        break;
-      case 'melody':
-        //TODO
-        break;
+    if(this.instrument === 'drums' || this.instrument === 'bass') {
+      var x = -wHalf + (w*(beat+1));
+      beatIndicator.ResetLocalMatrix();
+      beatIndicator.Translate([x, 2.0, 0.0]);
+      beatIndicator.Rotate(45, [1.0, 0.0, 0.0]);
+    }
+    else {
+
     }
   }
 
@@ -244,7 +325,31 @@ export default class GraphicEngine {
         }
         break;
       case 'bass':
-        //TODO
+        var sin45 = Math.sin(45 * Math.PI / 180.0);
+        var cos45 = Math.cos(45 * Math.PI / 180.0);
+        var wHalf = 2.23 / 2.0;
+        var w = 2.23 / 17.0;
+        var l = 1.23 / 10.0;
+        for (var i = 0; i<9; i++) {
+          for (var j = 0; j<16; j++) {
+            var value = pattern[j];
+            if (value === '-' || value !== i*0.125) {
+              this.pads[i+':'+j].meshColor = this.offPad;
+            }
+            else {
+              var s = (Math.abs(4 - i) + 1)*l - (l-0.04);
+              var c = ((6+i)*l)/2.0;
+              var x = -wHalf + (w*(j+1));
+              var y = 1.565 + (sin45*c);
+              var z = 0.435 - (cos45*c);
+              this.bassBars[j+':'].ResetLocalMatrix();
+              this.bassBars[j+':'].Translate([x, y, z]);
+              this.bassBars[j+':'].Rotate(45, [1.0, 0.0, 0.0]);
+              this.bassBars[j+':'].Scale([0.09, 0.07, s]);
+              this.pads[i+':'+j].meshColor = this.bassColor;
+            }
+          }
+        }
         break;
       case 'melody':
         //TODO
@@ -321,7 +426,13 @@ export default class GraphicEngine {
         }
         break;
       case 'bass':
-        instr.pattern[j] = i;
+        var value = parseFloat(i);
+        if (value === instr.pattern[j]) {
+          instr.pattern[j] = '-';
+        }
+        else {
+          instr.pattern[j] = value;
+        }
         break;
       case 'melody':
         instr.pattern[this.melodyBar][i] = (solo.pattern[this.melodyBar][i]===j?'-':j);

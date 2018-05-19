@@ -28,16 +28,16 @@
   font-size: 2vw;
 }
 
-#SongInfo p
+#SongInfo p, ul
 {
+  font-family: 'Raleway', sans-serif;
   color: #E5E5E5;
-  display: inline;
   font-size: 1.2vw;
 }
 
 #SongInfo ul
 {
-  padding-left: 0.5vw;
+  padding-left: 1vw;
 }
 
 #SongInfo .tab
