@@ -24,7 +24,9 @@ export default class GraphicEngine {
       this.animations = [];
       this.pickingEntities = [];
       this.pads = {};
+      this.melodyBarPads = {};
       this.bassBars = {};
+      this.melodyBar = 0;
       this.offPad = [0.75, 0.75, 0.75];
       this.drumsColor = [0.87, 0.13, 0.18];
       this.bassColor = [0.07, 0.53, 0.16];
@@ -264,7 +266,38 @@ export default class GraphicEngine {
   }
 
   CreateMelodyControl(stand, shaderProgram) {
-
+    var wHalf = 1.275 / 2.0;
+    var wHalfs = 1.4 / 2.0;
+    var w = 1.275 / 11.0;
+    var ls = 1.4 / 5.0;
+    for (var i = 0; i<10; i++) {
+      for (var j = 0; j<8; j++) {
+        var x = -wHalf + (w*(j+1));
+        var z = -wHalf + (w*(i+1));
+        var pad = new Entity('melodyPad_'+i+':'+j, stand);
+        pad.Initialize(this.gl, shaderProgram, Meshes.round_pad, this.offPad);
+        pad.Translate([0, 2, 0]);
+        pad.Rotate(45, [1.0, 0.0, 0.0]);
+        pad.Translate([x, 0, z]);
+        this.entities.push(pad);
+        this.pads[i+':'+j] = pad;
+        var pickingEntity = new PickingEntity(i+':'+j, pad, [0.1, 0.02, 0.1]);
+        this.pickingEntities.push(pickingEntity);
+      }
+    }
+    for (var i = 0; i<4; i++) {
+      var x = -wHalf + (w*9) + w/2.0;
+      var z = -wHalfs + (ls*(i+1));
+      var pad = new Entity('melodyBarPad_'+i, stand);
+      pad.Initialize(this.gl, shaderProgram, Meshes.square_pad, this.offPad);
+      pad.Translate([0, 2, 0]);
+      pad.Rotate(45, [1.0, 0.0, 0.0]);
+      pad.Translate([x, 0, z]);
+      this.entities.push(pad);
+      this.melodyBarPads[i+':'] = pad;
+      var pickingEntity = new PickingEntity('bar:'+i, pad, [0.2, 0.02, 0.25]);
+      this.pickingEntities.push(pickingEntity);
+    }
   }
 
   BeatUpdate(beat, bar, timeBetween) {
@@ -376,7 +409,25 @@ export default class GraphicEngine {
         }
         break;
       case 'melody':
-        //TODO
+        for (var i = 0; i<4; i++) {
+          if (this.melodyBar === i) {
+            this.melodyBarPads[i+':'].meshColor = this.melodyColor;
+          }
+          else {
+            this.melodyBarPads[i+':'].meshColor = this.offPad;
+          }
+        }
+        for (var i = 0; i<10; i++) {
+          for (var j = 0; j<8; j++) {
+            var value = pattern[this.melodyBar][j];
+            if (value === '-' || value !== i) {
+              this.pads[i+':'+j].meshColor = this.offPad;
+            }
+            else {
+              this.pads[i+':'+j].meshColor = this.melodyColor;
+            }
+          }
+        }
         break;
     }
   }
@@ -459,7 +510,12 @@ export default class GraphicEngine {
         }
         break;
       case 'melody':
-        instr.pattern[this.melodyBar][i] = (solo.pattern[this.melodyBar][i]===j?'-':j);
+        if(i === 'bar') {
+          this.melodyBar = j;
+        }
+        else {
+          instr.pattern[this.melodyBar][i] = (solo.pattern[this.melodyBar][i]===j?'-':j);
+        }
         break;
     }
     callback(instr, this.instrument);
