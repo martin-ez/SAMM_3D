@@ -76,18 +76,27 @@ export default class GraphicEngine {
     synthStandDrums.Translate([13.476, 0.0, 0.0]);
     synthStandDrums.Rotate(90, [0.0, 1.0, 0.0]);
     this.entities.push(synthStandDrums);
+    var frontStandDrums = new Entity('drums_front', synthStandDrums);
+    frontStandDrums.Initialize(this.gl, shaderProgram, Meshes.stand_front, this.blackColor);
+    this.entities.push(frontStandDrums);
 
     var synthStandBass = new Entity('bass_synth', this.origin);
     synthStandBass.Initialize(this.gl, shaderProgram, Meshes.stand, this.blackColor);
     synthStandBass.Translate([-6.74, 0.0, -11.67]);
     synthStandBass.Rotate(210, [0.0, 1.0, 0.0]);
     this.entities.push(synthStandBass);
+    var frontStandBass = new Entity('bass_front', synthStandBass);
+    frontStandBass.Initialize(this.gl, shaderProgram, Meshes.stand_front, this.blackColor);
+    this.entities.push(frontStandBass);
 
     var synthStandMelody = new Entity('melody_synth', this.origin);
-    synthStandMelody.Initialize(this.gl, shaderProgram, Meshes.stand, this.blackColor);
+    synthStandMelody.Initialize(this.gl, shaderProgram, Meshes.melody_stand, this.blackColor);
     synthStandMelody.Translate([-6.74, 0.0, 11.67]);
     synthStandMelody.Rotate(-30, [0.0, 1.0, 0.0]);
     this.entities.push(synthStandMelody);
+    var frontStandMelody = new Entity('melody_front', synthStandMelody);
+    frontStandMelody.Initialize(this.gl, shaderProgram, Meshes.stand_front, this.blackColor);
+    this.entities.push(frontStandMelody);
 
     //Setup camera and synth controls
     switch(instrument) {
@@ -101,6 +110,7 @@ export default class GraphicEngine {
         break;
       case 'melody':
         this.camera.Initialize([-7.45, 3.0, 12.9], [0.0, 0.0, 0.0]);
+        this.CreateMelodyControl(synthStandMelody, shaderProgram);
         break;
     }
   }
@@ -253,6 +263,10 @@ export default class GraphicEngine {
     this.entities.push(guide2);
   }
 
+  CreateMelodyControl(stand, shaderProgram) {
+
+  }
+
   BeatUpdate(beat, bar, timeBetween) {
     var beatIndicator = this.FindEntityByName('BeatIndicator');
     var wHalf = 2.23 / 2.0;
@@ -275,6 +289,7 @@ export default class GraphicEngine {
       if(song[instr].user !== '' && !this.activeUsers[instr]) {
         this.activeUsers[instr] = true;
         var piece = this.FindEntityByName(instr+'_room');
+        var front = this.FindEntityByName(instr+'_front');
         var finalColor = this.drumsColor;
         switch (instr) {
           case 'bass':
@@ -285,13 +300,18 @@ export default class GraphicEngine {
           break;
         }
         this.RemoveAnimationByName(instr+'_room_off');
+        this.RemoveAnimationByName(instr+'_front_off');
         var ani = new Animation(instr+'_room_on', piece, 'color',
           this.blackColor, finalColor, 1500);
+        var aniFront = new Animation(instr+'_front_on', front, 'color',
+          this.blackColor, finalColor, 1500);
         this.animations.push(ani);
+        this.animations.push(aniFront);
       }
       else if(song[instr].user === '' && this.activeUsers[instr]) {
         this.activeUsers[instr] = false;
         var piece = this.FindEntityByName(instr+'_room');
+        var front = this.FindEntityByName(instr+'_front');
         var finalColor = this.drumsColor;
         switch (instr) {
           case 'bass':
@@ -302,9 +322,13 @@ export default class GraphicEngine {
           break;
         }
         this.RemoveAnimationByName(instr+'_room_on');
+        this.RemoveAnimationByName(instr+'_front_on');
         var ani = new Animation(instr+'_room_off', piece, 'color',
           finalColor, this.blackColor, 1000);
+        var aniFront = new Animation(instr+'_front_off', front, 'color',
+          finalColor, this.blackColor, 1000);
         this.animations.push(ani);
+        this.animations.push(aniFront);
       }
     });
 
