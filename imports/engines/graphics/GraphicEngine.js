@@ -281,37 +281,70 @@ export default class GraphicEngine {
         pad.Translate([x, 0, z]);
         this.entities.push(pad);
         this.pads[i+':'+j] = pad;
-        var pickingEntity = new PickingEntity(i+':'+j, pad, [0.1, 0.02, 0.1]);
+        var pickingEntity = new PickingEntity(i+':'+j, pad, [0.05, 0.02, 0.05]);
         this.pickingEntities.push(pickingEntity);
       }
     }
     for (var i = 0; i<4; i++) {
       var x = -wHalf + (w*9) + w/2.0;
       var z = -wHalfs + (ls*(i+1));
-      var pad = new Entity('melodyBarPad_'+i, stand);
-      pad.Initialize(this.gl, shaderProgram, Meshes.square_pad, this.offPad);
-      pad.Translate([0, 2, 0]);
-      pad.Rotate(45, [1.0, 0.0, 0.0]);
-      pad.Translate([x, 0, z]);
-      this.entities.push(pad);
-      this.melodyBarPads[i+':'] = pad;
-      var pickingEntity = new PickingEntity('bar:'+i, pad, [0.2, 0.02, 0.25]);
+      var barPad = new Entity('melodyBarPad_'+i, stand);
+      barPad.Initialize(this.gl, shaderProgram, Meshes.square_pad, this.offPad);
+      barPad.Translate([0, 2, 0]);
+      barPad.Rotate(45, [1.0, 0.0, 0.0]);
+      barPad.Translate([x, 0, z]);
+      this.entities.push(barPad);
+      this.melodyBarPads['bar'+i] = barPad;
+      var pickingEntity = new PickingEntity('bar:'+i, barPad, [0.1, 0.02, 0.125]);
       this.pickingEntities.push(pickingEntity);
+      if(i===0) {
+        barPad.meshColor = this.melodyColor;
+      }
     }
+
+    //Beat indicator
+    var beatCube = PrimitiveCube(w, 0.015, 1.3, 1, 1, 1);
+    var beatMesh = {
+      'vertices': beatCube.positions,
+      'normals': beatCube.normals,
+      'faces': beatCube.cells
+    }
+    var beatIndicator = new Entity('BeatIndicator', stand);
+    var beatColor = vec3.create();
+    vec3.subtract(beatColor, this.melodyColor, [0.13, 0.13, 0.13]);
+    beatIndicator.Initialize(this.gl, shaderProgram, beatMesh, beatColor);
+    beatIndicator.Translate([0.0, 2.0, 0.0]);
+    beatIndicator.Rotate(45, [1.0, 0.0, 0.0]);
+    this.entities.push(beatIndicator);
   }
 
   BeatUpdate(beat, bar, timeBetween) {
     var beatIndicator = this.FindEntityByName('BeatIndicator');
-    var wHalf = 2.23 / 2.0;
-    var w = 2.23 / 17.0;
     if(this.instrument === 'drums' || this.instrument === 'bass') {
+      var wHalf = 2.23 / 2.0;
+      var w = 2.23 / 17.0;
       var x = -wHalf + (w*(beat+1));
       beatIndicator.ResetLocalMatrix();
       beatIndicator.Translate([x, 2.0, 0.0]);
       beatIndicator.Rotate(45, [1.0, 0.0, 0.0]);
     }
     else {
-
+      var beatHalfs = Math.floor(beat / 2);
+      var wHalf = 1.275 / 2.0;
+      var w = 1.275 / 11.0;
+      var x = -wHalf + (w*(beatHalfs+1));
+      beatIndicator.ResetLocalMatrix();
+      beatIndicator.Translate([0.0, 2.0, 0.0]);
+      beatIndicator.Rotate(45, [1.0, 0.0, 0.0]);
+      beatIndicator.Translate([x, 0.0, 0.0]);
+      if (this.melodyBar === bar) {
+        var beatColor = vec3.create();
+        vec3.subtract(beatColor, this.melodyColor, [0.13, 0.13, 0.13]);
+        beatIndicator.meshColor = beatColor;
+      }
+      else {
+        beatIndicator.meshColor = this.blackColor;
+      }
     }
   }
 
@@ -409,14 +442,6 @@ export default class GraphicEngine {
         }
         break;
       case 'melody':
-        for (var i = 0; i<4; i++) {
-          if (this.melodyBar === i) {
-            this.melodyBarPads[i+':'].meshColor = this.melodyColor;
-          }
-          else {
-            this.melodyBarPads[i+':'].meshColor = this.offPad;
-          }
-        }
         for (var i = 0; i<10; i++) {
           for (var j = 0; j<8; j++) {
             var value = pattern[this.melodyBar][j];
@@ -511,10 +536,15 @@ export default class GraphicEngine {
         break;
       case 'melody':
         if(i === 'bar') {
-          this.melodyBar = j;
+          this.melodyBar = parseInt(j);
+          for (var k = 0; k<4; k++) {
+            this.melodyBarPads['bar'+k].meshColor = this.offPad;
+          }
+          this.melodyBarPads['bar'+this.melodyBar].meshColor = this.melodyColor;
         }
         else {
-          instr.pattern[this.melodyBar][i] = (solo.pattern[this.melodyBar][i]===j?'-':j);
+          var value = parseInt(i);
+          instr.pattern[this.melodyBar][j] = (instr.pattern[this.melodyBar][j]===value?'-':value);
         }
         break;
     }
