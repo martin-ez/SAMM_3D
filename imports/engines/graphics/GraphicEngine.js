@@ -27,7 +27,7 @@ export default class GraphicEngine {
       this.melodyBarPads = {};
       this.bassBars = {};
       this.drumsAnimators = {};
-      this.bassAnimators = null;
+      this.bassAnimators = {};
       this.melodyAnimators = {};
       this.melodyBar = 0;
       this.offPad = [0.75, 0.75, 0.75];
@@ -138,6 +138,23 @@ export default class GraphicEngine {
       this.entities.push(sound);
       this.drumsAnimators[i] = sound;
     }
+
+    //Bass
+    var bassBeat = PrimitiveCube(12, 1, 1, 1, 1, 1);
+    var bassAniMesh = {
+      'vertices': bassBeat.positions,
+      'normals': bassBeat.normals,
+      'faces': bassBeat.cells
+    };
+    var bassRoom = this.FindEntityByName('bass_room');
+    var bOrigin = new Entity('bassAnimators_origin', bassRoom);
+    bOrigin.Rotate(30, [0.0, 1.0, 0.0]);
+    bOrigin.Translate([0.0, 5.0, 16.3]);
+    var mainAni = new Entity('bassAnimators_0', bOrigin);
+    mainAni.Initialize(this.gl, shaderProgram, bassAniMesh, this.blackColor);
+    mainAni.Translate([0.0, 0.0, 0.0]);
+    this.entities.push(mainAni);
+    this.bassAnimators[0] = mainAni;
   }
 
   CreateDrumsControl(stand, shaderProgram) {
@@ -369,14 +386,16 @@ export default class GraphicEngine {
         beatIndicator.meshColor = this.blackColor;
       }
     }
+    var prev = beat - 1;
+    if (prev === -1) prev = 16;
+    var next = beat + 1;
+    if (next === 16) next = 0;
+    var tBeat = timeBetween / 4.0;
 
     //Drums animators
     for (var i = 0; i<4; i++) {
       var animator = this.drumsAnimators[i];
-      var next = beat + 1;
-      if (next === 16) next = 0;
       var x = 6.0 -(i*4.0);
-      var tBeat = timeBetween / 4.0;
       if (song.drums.pattern[i][beat] === 'x') {
         var ani = new Animation('drumsBeatAnimation_'+i, animator, 'position',
           [x, 4.0, 0.0], [x, -4.0, 0.0], tBeat * 3, 0);
@@ -388,6 +407,24 @@ export default class GraphicEngine {
         this.animations.push(preAni);
       }
     }
+
+    //Bass animators
+    var v = song.bass.pattern[beat];
+    var n = song.bass.pattern[next];
+    var vNormal = (v!=='-')?((v*8) - 4):0;
+    var nNormal = (n!=='-')?((n*8) - 4):0;
+    var y = 0.0;
+    var yN = 0.0;
+    if (v !== '-') {
+      y = vNormal;
+    }
+    if (n !== '-') {
+      yN = vNormal;
+    }
+    var animator = this.bassAnimators[0];
+    var ani = new Animation('bassBeatAnimation_0', animator, 'position',
+      [0.0, y, z], [0.0, yN, 0.0], timeBetween, 0);
+    this.animations.push(ani);
   }
 
   UpdateScene(song) {
