@@ -20,6 +20,7 @@ class Room extends Component {
     this.Render = this.Render.bind(this);
     this.UpdatePattern = this.UpdatePattern.bind(this);
     this.canvasRef = React.createRef();
+    this.tags = {};
     this.sceneReady = false;
     this.pointerLock = false;
     this.GraphicBeatUpdate = false;
@@ -65,9 +66,23 @@ class Room extends Component {
             bar={this.state.bar}
             song={this.props.song}
             instrument={this.state.instrument}/>
+            {this.RenderTags()}
         </div>
       );
     }
+  }
+
+  RenderTags() {
+    var instruments = ['drums', 'bass', 'melody'];
+    return instruments.map((instr, i) => {
+      if (this.props.song[instr].user !== '' && this.props.song[instr].user !== 'someone') {
+        return (
+          <div className={'tag '+instr} key={i} ref={(c) => {this.tags[instr] = c;}}>
+            <h1>{this.props.song[instr].user}</h1>
+          </div>
+        );
+      }
+    });
   }
 
   componentDidMount() {
@@ -110,6 +125,7 @@ class Room extends Component {
   Render(now) {
     const deltaTime = now - this.then;
     this.then = now;
+    this.state.graphicEngine.SetTags(this.tags);
     if(this.GraphicBeatUpdate) {
       this.state.graphicEngine.BeatUpdate(this.state.beat, this.state.bar, this.tInterval, this.props.song);
       this.GraphicBeatUpdate = false;

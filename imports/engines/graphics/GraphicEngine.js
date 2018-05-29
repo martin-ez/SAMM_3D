@@ -1,7 +1,7 @@
 let graphicInstance = null;
 import Utils from './WebGL-Utils.js';
-import {vec3} from 'gl-matrix';
-import PrimitiveTorus from 'primitive-torus';
+import {vec3, vec4, mat4} from 'gl-matrix';
+import PrimitiveSphere from 'primitive-sphere';
 import PrimitiveCube from 'primitive-cube';
 import ShaderFactory from './ShaderFactory.js';
 
@@ -13,12 +13,14 @@ import Animation from './Animation.js';
 
 //Import 3D models
 import Meshes from './Models.json';
+import Character from './Char.json';
 
 export default class GraphicEngine {
   constructor() {
     if (!graphicInstance) {
       graphicInstance = this;
       this.gl = null;
+      this.shaderProgram = null;
       this.origin = new Entity('Origin', null);
       this.entities = [];
       this.animations = [];
@@ -27,14 +29,16 @@ export default class GraphicEngine {
       this.melodyBarPads = {};
       this.bassBars = {};
       this.drumsAnimators = {};
-      this.bassAnimators = {};
-      this.melodyAnimators = {};
+      this.bassAnimator = null;
+      this.melodyAnimator = null;
+      this.origins = {};
       this.melodyBar = 0;
       this.offPad = [0.75, 0.75, 0.75];
       this.drumsColor = [0.87, 0.13, 0.18];
       this.bassColor = [0.07, 0.53, 0.16];
       this.melodyColor = [0.47, 0.12, 0.78];
       this.blackColor = [0.1, 0.1, 0.1];
+      this.tags = {};
       this.camera = new Camera(60.0, 1.0);
       this.size = {
         width: 0,
@@ -54,15 +58,19 @@ export default class GraphicEngine {
     this.gl = Utils.GetContext(canvas);
   }
 
+  SetTags(tags) {
+    this.tags = tags;
+  }
+
   CreateScene(instrument) {
     this.instrument = instrument;
     //Get Shader
-    var shaderProgram = ShaderFactory.GetSimpleShader(this.gl);
+    this.shaderProgram = ShaderFactory.GetSimpleShader(this.gl);
 
     //Create Room
     for(var i = 0; i<3; i++) {
       var room_piece = new Entity('Room_'+i, this.origin);
-      room_piece.Initialize(this.gl, shaderProgram, Meshes.room_piece, [0.3, 0.3, 0.3]);
+      room_piece.Initialize(this.gl, this.shaderProgram, Meshes.room_piece, [0.3, 0.3, 0.3]);
       room_piece.Rotate(i*120, [0.0, 1.0, 0.0]);
       this.entities.push(room_piece);
     }
@@ -70,52 +78,52 @@ export default class GraphicEngine {
     var instruments = ['drums', 'bass', 'melody'];
     instruments.map((instr, i) => {
       var room_piece = new Entity(instr+'_room', this.origin);
-      room_piece.Initialize(this.gl, shaderProgram, Meshes.room_piece, this.blackColor);
+      room_piece.Initialize(this.gl, this.shaderProgram, Meshes.room_piece, this.blackColor);
       room_piece.Rotate(i*120 + 60, [0.0, 1.0, 0.0]);
       this.entities.push(room_piece);
     });
 
     //Create synth stands
     var synthStandDrums = new Entity('drums_synth', this.origin);
-    synthStandDrums.Initialize(this.gl, shaderProgram, Meshes.stand, this.blackColor);
+    synthStandDrums.Initialize(this.gl, this.shaderProgram, Meshes.stand, this.blackColor);
     synthStandDrums.Translate([13.476, 0.0, 0.0]);
     synthStandDrums.Rotate(90, [0.0, 1.0, 0.0]);
     this.entities.push(synthStandDrums);
     var frontStandDrums = new Entity('drums_front', synthStandDrums);
-    frontStandDrums.Initialize(this.gl, shaderProgram, Meshes.stand_front, this.blackColor);
+    frontStandDrums.Initialize(this.gl, this.shaderProgram, Meshes.stand_front, this.blackColor);
     this.entities.push(frontStandDrums);
 
     var synthStandBass = new Entity('bass_synth', this.origin);
-    synthStandBass.Initialize(this.gl, shaderProgram, Meshes.stand, this.blackColor);
+    synthStandBass.Initialize(this.gl, this.shaderProgram, Meshes.stand, this.blackColor);
     synthStandBass.Translate([-6.74, 0.0, -11.67]);
     synthStandBass.Rotate(210, [0.0, 1.0, 0.0]);
     this.entities.push(synthStandBass);
     var frontStandBass = new Entity('bass_front', synthStandBass);
-    frontStandBass.Initialize(this.gl, shaderProgram, Meshes.stand_front, this.blackColor);
+    frontStandBass.Initialize(this.gl, this.shaderProgram, Meshes.stand_front, this.blackColor);
     this.entities.push(frontStandBass);
 
     var synthStandMelody = new Entity('melody_synth', this.origin);
-    synthStandMelody.Initialize(this.gl, shaderProgram, Meshes.melody_stand, this.blackColor);
+    synthStandMelody.Initialize(this.gl, this.shaderProgram, Meshes.melody_stand, this.blackColor);
     synthStandMelody.Translate([-6.74, 0.0, 11.67]);
     synthStandMelody.Rotate(-30, [0.0, 1.0, 0.0]);
     this.entities.push(synthStandMelody);
     var frontStandMelody = new Entity('melody_front', synthStandMelody);
-    frontStandMelody.Initialize(this.gl, shaderProgram, Meshes.stand_front, this.blackColor);
+    frontStandMelody.Initialize(this.gl, this.shaderProgram, Meshes.stand_front, this.blackColor);
     this.entities.push(frontStandMelody);
 
     //Setup camera and synth controls
     switch(instrument) {
       case 'drums':
         this.camera.Initialize([14.905, 3.0, 0.0], [0.0, 0.0, 0.0]);
-        this.CreateDrumsControl(synthStandDrums, shaderProgram);
+        this.CreateDrumsControl(synthStandDrums);
         break;
       case 'bass':
         this.camera.Initialize([-7.45, 3.0, -12.9], [0.0, 0.0, 0.0]);
-        this.CreateBassControl(synthStandBass, shaderProgram);
+        this.CreateBassControl(synthStandBass);
         break;
       case 'melody':
         this.camera.Initialize([-7.45, 3.0, 12.9], [0.0, 0.0, 0.0]);
-        this.CreateMelodyControl(synthStandMelody, shaderProgram);
+        this.CreateMelodyControl(synthStandMelody);
         break;
     }
 
@@ -128,12 +136,13 @@ export default class GraphicEngine {
       'faces': drumsBeats.cells
     }
     var drumsRoom = this.FindEntityByName('drums_room');
-    var dOrigin = new Entity('drumsAnimators_origin', drumsRoom);
+    var dOrigin = new Entity('drums_origin', drumsRoom);
     dOrigin.Rotate(30, [0.0, 1.0, 0.0]);
     dOrigin.Translate([0.0, 0.0, 16.3]);
+    this.origins['drums'] = dOrigin;
     for (var i = 0; i<4; i++) {
       var sound = new Entity('drumsAnimators_'+i, dOrigin);
-      sound.Initialize(this.gl, shaderProgram, drumBeatsMesh, this.blackColor);
+      sound.Initialize(this.gl, this.shaderProgram, drumBeatsMesh, this.blackColor);
       sound.Translate([6.0 -(i*4.0), -4.0, 0.0]);
       this.entities.push(sound);
       this.drumsAnimators[i] = sound;
@@ -147,17 +156,36 @@ export default class GraphicEngine {
       'faces': bassBeat.cells
     };
     var bassRoom = this.FindEntityByName('bass_room');
-    var bOrigin = new Entity('bassAnimators_origin', bassRoom);
+    var bOrigin = new Entity('bass_origin', bassRoom);
     bOrigin.Rotate(30, [0.0, 1.0, 0.0]);
-    bOrigin.Translate([0.0, 5.0, 16.3]);
+    bOrigin.Translate([0.0, 0.0, 16.3]);
+    this.origins['bass'] = bOrigin;
     var mainAni = new Entity('bassAnimators_0', bOrigin);
-    mainAni.Initialize(this.gl, shaderProgram, bassAniMesh, this.blackColor);
-    mainAni.Translate([0.0, 0.0, 0.0]);
+    mainAni.Initialize(this.gl, this.shaderProgram, bassAniMesh, this.blackColor);
+    mainAni.Translate([0.0, 5.0, 0.0]);
     this.entities.push(mainAni);
-    this.bassAnimators[0] = mainAni;
+    this.bassAnimator = mainAni;
+
+    //Melody
+    var sphere = PrimitiveSphere(1.0);
+    var sphereMesh ={
+      'vertices': sphere.positions,
+      'normals': sphere.normals,
+      'faces': sphere.cells
+    };
+    var melodyRoom = this.FindEntityByName('melody_room');
+    var mOrigin = new Entity('melody_origin', melodyRoom);
+    mOrigin.Rotate(30, [0.0, 1.0, 0.0]);
+    mOrigin.Translate([0.0, 0.0, 16.3]);
+    this.origins['melody'] = mOrigin;
+    var mAni = new Entity('melodyAnimator', mOrigin);
+    mAni.Initialize(this.gl, this.shaderProgram, sphereMesh, this.blackColor);
+    mAni.Translate([-8.0, 1.5, 0.25]);
+    this.entities.push(mAni);
+    this.melodyAnimator = mAni;
   }
 
-  CreateDrumsControl(stand, shaderProgram) {
+  CreateDrumsControl(stand) {
     var cube = PrimitiveCube(0.08, 0.1, 0.18, 1, 1, 1);
     var beatCube = PrimitiveCube(0.131, 0.05, 1.2, 1, 1, 1);
     var guideCube = PrimitiveCube(0.524, 0.02, 1.2, 1, 1, 1);
@@ -187,7 +215,7 @@ export default class GraphicEngine {
         var y = 1.565 + (sin45*(l*(i+1)));
         var z = 0.435 - (cos45*(l*(i+1)));
         var pad = new Entity('drumPad_'+i+':'+j, stand);
-        pad.Initialize(this.gl, shaderProgram, mesh, this.offPad);
+        pad.Initialize(this.gl, this.shaderProgram, mesh, this.offPad);
         pad.Translate([x, y, z]);
         pad.Rotate(45, [1.0, 0.0, 0.0]);
         this.entities.push(pad);
@@ -202,26 +230,26 @@ export default class GraphicEngine {
     var beatIndicator = new Entity('BeatIndicator', stand);
     var beatColor = vec3.create();
     vec3.subtract(beatColor, this.drumsColor, [0.13, 0.13, 0.13]);
-    beatIndicator.Initialize(this.gl, shaderProgram, beatMesh, beatColor);
+    beatIndicator.Initialize(this.gl, this.shaderProgram, beatMesh, beatColor);
     beatIndicator.Translate([pos, 2.0, 0.0]);
     beatIndicator.Rotate(45, [1.0, 0.0, 0.0]);
     beatIndicator.Translate([w*5, 0.0, 0.0]);
     this.entities.push(beatIndicator);
 
     var guide1 = new Entity('Guide1', stand);
-    guide1.Initialize(this.gl, shaderProgram, guideMesh, [0.2, 0.2, 0.2]);
+    guide1.Initialize(this.gl, this.shaderProgram, guideMesh, [0.2, 0.2, 0.2]);
     guide1.Translate([w*6.0, 2.0, 0.0]);
     guide1.Rotate(45, [1.0, 0.0, 0.0]);
     this.entities.push(guide1);
 
     var guide2 = new Entity('Guide2', stand);
-    guide2.Initialize(this.gl, shaderProgram, guideMesh, [0.2, 0.2, 0.2]);
+    guide2.Initialize(this.gl, this.shaderProgram, guideMesh, [0.2, 0.2, 0.2]);
     guide2.Translate([w*-2.0, 2.0, 0.0]);
     guide2.Rotate(45, [1.0, 0.0, 0.0]);
     this.entities.push(guide2);
   }
 
-  CreateBassControl(stand, shaderProgram) {
+  CreateBassControl(stand) {
     var cube = PrimitiveCube(0.08, 0.1, 0.04, 1, 1, 1);
     var beatCube = PrimitiveCube(0.131, 0.05, 1.2, 1, 1, 1);
     var guideCube = PrimitiveCube(0.524, 0.02, 1.2, 1, 1, 1);
@@ -257,7 +285,7 @@ export default class GraphicEngine {
         var y = 1.565 + (sin45*(l*(i+1)));
         var z = 0.435 - (cos45*(l*(i+1)));
         var pad = new Entity('bassPad_'+i+':'+j, stand);
-        pad.Initialize(this.gl, shaderProgram, mesh, this.offPad);
+        pad.Initialize(this.gl, this.shaderProgram, mesh, this.offPad);
         pad.Translate([x, y, z]);
         pad.Rotate(45, [1.0, 0.0, 0.0]);
         this.entities.push(pad);
@@ -274,7 +302,7 @@ export default class GraphicEngine {
       var x = -wHalf + (w*(k+1));
       var y = 2;
       var z = 0;
-      bassBar.Initialize(this.gl, shaderProgram, barMesh, this.bassColor);
+      bassBar.Initialize(this.gl, this.shaderProgram, barMesh, this.bassColor);
       bassBar.Translate([x, y, z]);
       bassBar.Rotate(45, [1.0, 0.0, 0.0]);
       this.entities.push(bassBar);
@@ -286,26 +314,26 @@ export default class GraphicEngine {
     var beatIndicator = new Entity('BeatIndicator', stand);
     var beatColor = vec3.create();
     vec3.subtract(beatColor, this.bassColor, [0.13, 0.13, 0.13]);
-    beatIndicator.Initialize(this.gl, shaderProgram, beatMesh, beatColor);
+    beatIndicator.Initialize(this.gl, this.shaderProgram, beatMesh, beatColor);
     beatIndicator.Translate([pos, 2.0, 0.0]);
     beatIndicator.Rotate(45, [1.0, 0.0, 0.0]);
     beatIndicator.Translate([w*5, 0.0, 0.0]);
     this.entities.push(beatIndicator);
 
     var guide1 = new Entity('Guide1', stand);
-    guide1.Initialize(this.gl, shaderProgram, guideMesh, [0.2, 0.2, 0.2]);
+    guide1.Initialize(this.gl, this.shaderProgram, guideMesh, [0.2, 0.2, 0.2]);
     guide1.Translate([w*6.0, 2.0, 0.0]);
     guide1.Rotate(45, [1.0, 0.0, 0.0]);
     this.entities.push(guide1);
 
     var guide2 = new Entity('Guide2', stand);
-    guide2.Initialize(this.gl, shaderProgram, guideMesh, [0.2, 0.2, 0.2]);
+    guide2.Initialize(this.gl, this.shaderProgram, guideMesh, [0.2, 0.2, 0.2]);
     guide2.Translate([w*-2.0, 2.0, 0.0]);
     guide2.Rotate(45, [1.0, 0.0, 0.0]);
     this.entities.push(guide2);
   }
 
-  CreateMelodyControl(stand, shaderProgram) {
+  CreateMelodyControl(stand) {
     var wHalf = 1.275 / 2.0;
     var wHalfs = 1.4 / 2.0;
     var w = 1.275 / 11.0;
@@ -315,7 +343,7 @@ export default class GraphicEngine {
         var x = -wHalf + (w*(j+1));
         var z = -wHalf + (w*(i+1));
         var pad = new Entity('melodyPad_'+i+':'+j, stand);
-        pad.Initialize(this.gl, shaderProgram, Meshes.round_pad, this.offPad);
+        pad.Initialize(this.gl, this.shaderProgram, Meshes.round_pad, this.offPad);
         pad.Translate([0, 2, 0]);
         pad.Rotate(45, [1.0, 0.0, 0.0]);
         pad.Translate([x, 0, z]);
@@ -329,7 +357,7 @@ export default class GraphicEngine {
       var x = -wHalf + (w*9) + w/2.0;
       var z = -wHalfs + (ls*(i+1));
       var barPad = new Entity('melodyBarPad_'+i, stand);
-      barPad.Initialize(this.gl, shaderProgram, Meshes.square_pad, this.offPad);
+      barPad.Initialize(this.gl, this.shaderProgram, Meshes.square_pad, this.offPad);
       barPad.Translate([0, 2, 0]);
       barPad.Rotate(45, [1.0, 0.0, 0.0]);
       barPad.Translate([x, 0, z]);
@@ -352,7 +380,7 @@ export default class GraphicEngine {
     var beatIndicator = new Entity('BeatIndicator', stand);
     var beatColor = vec3.create();
     vec3.subtract(beatColor, this.melodyColor, [0.13, 0.13, 0.13]);
-    beatIndicator.Initialize(this.gl, shaderProgram, beatMesh, beatColor);
+    beatIndicator.Initialize(this.gl, this.shaderProgram, beatMesh, beatColor);
     beatIndicator.Translate([0.0, 2.0, 0.0]);
     beatIndicator.Rotate(45, [1.0, 0.0, 0.0]);
     this.entities.push(beatIndicator);
@@ -386,8 +414,6 @@ export default class GraphicEngine {
         beatIndicator.meshColor = this.blackColor;
       }
     }
-    var prev = beat - 1;
-    if (prev === -1) prev = 16;
     var next = beat + 1;
     if (next === 16) next = 0;
     var tBeat = timeBetween / 4.0;
@@ -413,18 +439,67 @@ export default class GraphicEngine {
     var n = song.bass.pattern[next];
     var vNormal = (v!=='-')?((v*8) - 4):0;
     var nNormal = (n!=='-')?((n*8) - 4):0;
-    var y = 0.0;
-    var yN = 0.0;
-    if (v !== '-') {
-      y = vNormal;
+    var animator = this.bassAnimator;
+    if (v !== '-' || n!== '-') {
+      var mAni = null;
+      if (v === '-' && n!=='-') {
+        mAni = new Animation('melodyAnimator', animator, 'position',
+          [0.0, 5.0 + nNormal, 0.25], [0.0, 5.0 + nNormal, 0.0], timeBetween, 0);
+      }
+      else if (v !== '-' && n==='-') {
+        mAni = new Animation('melodyAnimator', animator, 'position',
+          [0.0, 5.0 + vNormal, 0.0], [0.0, 5.0 + vNormal, 0.25], timeBetween, 0);
+      }
+      else {
+        mAni = new Animation('melodyAnimator', animator, 'position',
+          [0.0, 5.0 + vNormal, 0.0], [0.0, 5.0 + nNormal, 0.0], timeBetween, 0);
+      }
+      this.animations.push(mAni);
     }
-    if (n !== '-') {
-      yN = vNormal;
+    else {
+      animator.ResetLocalMatrix();
+      animator.Translate([0.0, 0.0, 0.25]);
     }
-    var animator = this.bassAnimators[0];
-    var ani = new Animation('bassBeatAnimation_0', animator, 'position',
-      [0.0, y, z], [0.0, yN, 0.0], timeBetween, 0);
-    this.animations.push(ani);
+
+    //Melody animator
+    if (beat%2 === 0) {
+      var b = Math.floor(beat/2);
+      var bN = b+1;
+      var nextBar = bar;
+      if (bN === 8) {
+        bN = 0;
+        nextBar+= 1;
+        if (nextBar === 4) nextBar = 0;
+      }
+
+      var v = song.melody.pattern[bar][b];
+      var n = song.melody.pattern[nextBar][bN];
+      var x = (v !== '-')? (-8.0+(v*1.6)):0.0;
+      var y = 1.5 + (bar*2.25);
+      var xN = (n !== '-')? (-8.0+(n*1.6)):0.0;
+      var yN = 1.5 + (nextBar*2.25);
+      var animator = this.melodyAnimator;
+      if (v !== '-' || n!== '-') {
+        var mAni = null;
+        if (v === '-' && n!=='-') {
+          mAni = new Animation('melodyAnimator', animator, 'position',
+            [xN, yN, 1.5], [xN, yN, 0.0], tBeat*8, 0);
+        }
+        else if (v !== '-' && n==='-') {
+          mAni = new Animation('melodyAnimator', animator, 'position',
+            [x, y, 0.0], [x, y, 1.5], tBeat*8, 0);
+        }
+        else {
+          mAni = new Animation('melodyAnimator', animator, 'position',
+            [x, y, 0.0], [xN, yN, 0.0], tBeat*8, 0);
+        }
+        this.animations.push(mAni);
+      }
+      else {
+        animator.ResetLocalMatrix();
+        animator.Translate([0.0, 0.0, 1.5]);
+      }
+    }
   }
 
   UpdateScene(song) {
@@ -452,6 +527,15 @@ export default class GraphicEngine {
           this.blackColor, finalColor, 1500, 0);
         this.animations.push(ani);
         this.animations.push(aniFront);
+
+        if (this.instrument !== instr) {
+          var char = new Entity(instr+'_char', piece);
+          char.Initialize(this.gl, this.shaderProgram, Character.char, [0.75, 0.75, 0.75]);
+          char.Rotate(30, [0.0, 1.0, 0.0]);
+          char.Translate([0.0, 0.0, 14]);
+          char.Rotate(180, [0.0, 1.0, 0.0]);
+          this.entities.push(char);
+        }
       }
       else if(song[instr].user === '' && this.activeUsers[instr]) {
         this.activeUsers[instr] = false;
@@ -474,6 +558,8 @@ export default class GraphicEngine {
           finalColor, this.blackColor, 1000, 0);
         this.animations.push(ani);
         this.animations.push(aniFront);
+
+        this.RemoveEntityByName(instr+'_char');
       }
     });
 
@@ -558,6 +644,16 @@ export default class GraphicEngine {
     for(var i = 0; i<this.animations.length; i++) {
       if (this.animations[i].name === name) {
         this.animations.splice(i, 1);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  RemoveEntityByName(name) {
+    for(var i = 0; i<this.entities.length; i++) {
+      if (this.entities[i].name === name) {
+        this.entities.splice(i, 1);
         return true;
       }
     }
@@ -695,6 +791,31 @@ export default class GraphicEngine {
       const type = this.gl.UNSIGNED_SHORT;
       const offset = 0;
       this.gl.drawElements(this.gl.TRIANGLES, vertexCount, type, offset);
+    });
+
+    //Place user tags
+    var point = [0.0, 0.0, 0.0, 1];
+    var instruments = ['drums', 'bass', 'melody'];
+    instruments.map((instr, i) => {
+      if (this.tags[instr] && this.instrument !== instr) {
+        var origin = this.origins[instr];
+        var clipspace = vec4.create();
+        var matrix = mat4.create();
+        var localM = mat4.create();
+        var worldM = mat4.create();
+        mat4.fromTranslation(localM, [0.5, 4.5, -2.0]);
+        mat4.multiply(worldM, origin.worldMatrix, localM)
+        mat4.multiply(matrix, projMatrix, viewMatrix);
+        mat4.multiply(matrix, matrix, worldM);
+        vec4.transformMat4(clipspace, point, matrix);
+        clipspace[0] /= clipspace[3];
+        clipspace[1] /= clipspace[3];
+        var pixelX = (clipspace[0] *  0.5 + 0.5) * this.gl.canvas.width;
+        var pixelY = (clipspace[1] * -0.5 + 0.5) * this.gl.canvas.height;
+
+        this.tags[instr].style.left = Math.floor(pixelX) + "px";
+        this.tags[instr].style.top = Math.floor(pixelY) + "px";
+      }
     });
   }
 }

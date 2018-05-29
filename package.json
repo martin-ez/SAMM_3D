@@ -13,7 +13,7 @@
     "meteor-node-stubs": "^0.3.3",
     "octavian": "^2.2.0",
     "primitive-cube": "^2.0.1",
-    "primitive-torus": "^1.0.4",
+    "primitive-sphere": "^3.0.0",
     "react": "^16.4.0",
     "react-addons-pure-render-mixin": "^15.6.2",
     "react-dom": "^16.4.0",

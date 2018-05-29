@@ -26,3 +26,17 @@ canvas
 {
   background-color: black;
 }
+
+#Room .tag
+{
+  position: absolute;
+  color: #E5E5E5;
+  display: flex;
+  align-items: center;
+  z-index: 10;
+}
+
+#Room .tag h1
+{
+  font-size: 1vw;
+}
