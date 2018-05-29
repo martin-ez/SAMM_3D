@@ -26,6 +26,9 @@ export default class GraphicEngine {
       this.pads = {};
       this.melodyBarPads = {};
       this.bassBars = {};
+      this.drumsAnimators = {};
+      this.bassAnimators = null;
+      this.melodyAnimators = {};
       this.melodyBar = 0;
       this.offPad = [0.75, 0.75, 0.75];
       this.drumsColor = [0.87, 0.13, 0.18];
@@ -114,6 +117,26 @@ export default class GraphicEngine {
         this.camera.Initialize([-7.45, 3.0, 12.9], [0.0, 0.0, 0.0]);
         this.CreateMelodyControl(synthStandMelody, shaderProgram);
         break;
+    }
+
+    //Setup animation entities
+    //Drums
+    var drumsBeats = PrimitiveCube(4, 10, 1, 1, 1, 1);
+    var drumBeatsMesh = {
+      'vertices': drumsBeats.positions,
+      'normals': drumsBeats.normals,
+      'faces': drumsBeats.cells
+    }
+    var drumsRoom = this.FindEntityByName('drums_room');
+    var dOrigin = new Entity('drumsAnimators_origin', drumsRoom);
+    dOrigin.Rotate(30, [0.0, 1.0, 0.0]);
+    dOrigin.Translate([0.0, 0.0, 16.3]);
+    for (var i = 0; i<4; i++) {
+      var sound = new Entity('drumsAnimators_'+i, dOrigin);
+      sound.Initialize(this.gl, shaderProgram, drumBeatsMesh, this.blackColor);
+      sound.Translate([6.0 -(i*4.0), -4.0, 0.0]);
+      this.entities.push(sound);
+      this.drumsAnimators[i] = sound;
     }
   }
 
@@ -318,7 +341,7 @@ export default class GraphicEngine {
     this.entities.push(beatIndicator);
   }
 
-  BeatUpdate(beat, bar, timeBetween) {
+  BeatUpdate(beat, bar, timeBetween, song) {
     var beatIndicator = this.FindEntityByName('BeatIndicator');
     if(this.instrument === 'drums' || this.instrument === 'bass') {
       var wHalf = 2.23 / 2.0;
@@ -346,6 +369,25 @@ export default class GraphicEngine {
         beatIndicator.meshColor = this.blackColor;
       }
     }
+
+    //Drums animators
+    for (var i = 0; i<4; i++) {
+      var animator = this.drumsAnimators[i];
+      var next = beat + 1;
+      if (next === 16) next = 0;
+      var x = 6.0 -(i*4.0);
+      var tBeat = timeBetween / 4.0;
+      if (song.drums.pattern[i][beat] === 'x') {
+        var ani = new Animation('drumsBeatAnimation_'+i, animator, 'position',
+          [x, 4.0, 0.0], [x, -4.0, 0.0], tBeat * 3, 0);
+        this.animations.push(ani);
+      }
+      if (song.drums.pattern[i][next] === 'x') {
+        var preAni = new Animation('drumsBeatPreAnimation_'+i, animator, 'position',
+          [x, -4.0, 0.0], [x, 4.0, 0.0], tBeat * 1, tBeat * 3);
+        this.animations.push(preAni);
+      }
+    }
   }
 
   UpdateScene(song) {
@@ -368,9 +410,9 @@ export default class GraphicEngine {
         this.RemoveAnimationByName(instr+'_room_off');
         this.RemoveAnimationByName(instr+'_front_off');
         var ani = new Animation(instr+'_room_on', piece, 'color',
-          this.blackColor, finalColor, 1500);
+          this.blackColor, finalColor, 1500, 0);
         var aniFront = new Animation(instr+'_front_on', front, 'color',
-          this.blackColor, finalColor, 1500);
+          this.blackColor, finalColor, 1500, 0);
         this.animations.push(ani);
         this.animations.push(aniFront);
       }
@@ -390,9 +432,9 @@ export default class GraphicEngine {
         this.RemoveAnimationByName(instr+'_room_on');
         this.RemoveAnimationByName(instr+'_front_on');
         var ani = new Animation(instr+'_room_off', piece, 'color',
-          finalColor, this.blackColor, 1000);
+          finalColor, this.blackColor, 1000, 0);
         var aniFront = new Animation(instr+'_front_off', front, 'color',
-          finalColor, this.blackColor, 1000);
+          finalColor, this.blackColor, 1000, 0);
         this.animations.push(ani);
         this.animations.push(aniFront);
       }
@@ -544,7 +586,7 @@ export default class GraphicEngine {
         }
         else {
           var value = parseInt(i);
-          instr.pattern[this.melodyBar][j] = (instr.pattern[this.melodyBar][j]===value?'-':value);
+          instr.pattern[this.melodyBar][parseInt(j)] = (instr.pattern[this.melodyBar][parseInt(j)]===value?'-':value);
         }
         break;
     }

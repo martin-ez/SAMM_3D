@@ -111,7 +111,7 @@ class Room extends Component {
     const deltaTime = now - this.then;
     this.then = now;
     if(this.GraphicBeatUpdate) {
-      this.state.graphicEngine.BeatUpdate(this.state.beat, this.state.bar, this.tInterval);
+      this.state.graphicEngine.BeatUpdate(this.state.beat, this.state.bar, this.tInterval, this.props.song);
       this.GraphicBeatUpdate = false;
     }
     this.state.graphicEngine.UpdateScene(this.props.song);

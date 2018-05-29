@@ -1,7 +1,7 @@
 import {vec3} from 'gl-matrix';
 
 export default class Animation {
-  constructor(name, entity, type, start, end, time) {
+  constructor(name, entity, type, start, end, time, delay) {
     this.name = name;
     this.entity = entity;
     this.type = type;
@@ -10,6 +10,7 @@ export default class Animation {
     this.time = time;
     this.startTime = 0;
     this.needStart = true;
+    this.delay = delay;
   }
 
   SetStart(now) {
@@ -20,7 +21,8 @@ export default class Animation {
         this.entity.ChangeColor(this.start);
         break;
       case 'position':
-        //TODO
+        this.entity.ResetLocalMatrix();
+        this.entity.Translate(this.start);
         break;
     }
   }
@@ -37,7 +39,10 @@ export default class Animation {
   }
 
   HandleColorAnimation(now) {
-    var i = (now - this.startTime) / this.time;
+    if(now < this.startTime + this.delay) {
+      return;
+    }
+    var i = (now - this.startTime + this.delay) / this.time;
     if (i<1) {
       var color = vec3.create();
       vec3.lerp(color, this.start, this.end, i);
@@ -51,6 +56,21 @@ export default class Animation {
   }
 
   HandlePositionAnimation(now) {
-    //TODO
+    if(now < this.startTime + this.delay) {
+      return;
+    }
+    var i = (now - this.startTime + this.delay) / this.time;
+    if (i<1) {
+      var pos = vec3.create();
+      vec3.lerp(pos, this.start, this.end, i);
+      this.entity.ResetLocalMatrix();
+      this.entity.Translate(pos);
+      return false;
+    }
+    else {
+      this.entity.ResetLocalMatrix();
+      this.entity.Translate(this.end);
+      return true;
+    }
   }
 }
