@@ -85,7 +85,7 @@ export default class GraphicEngine {
 
     //Create synth stands
     var synthStandDrums = new Entity('drums_synth', this.origin);
-    synthStandDrums.Initialize(this.gl, this.shaderProgram, Meshes.stand, this.blackColor);
+    synthStandDrums.Initialize(this.gl, this.shaderProgram, Meshes.drums_stand, this.blackColor);
     synthStandDrums.Translate([13.476, 0.0, 0.0]);
     synthStandDrums.Rotate(90, [0.0, 1.0, 0.0]);
     this.entities.push(synthStandDrums);
@@ -186,67 +186,37 @@ export default class GraphicEngine {
   }
 
   CreateDrumsControl(stand) {
-    var cube = PrimitiveCube(0.08, 0.1, 0.18, 1, 1, 1);
-    var beatCube = PrimitiveCube(0.131, 0.05, 1.2, 1, 1, 1);
-    var guideCube = PrimitiveCube(0.524, 0.02, 1.2, 1, 1, 1);
-    var mesh = {
-      'vertices': cube.positions,
-      'normals': cube.normals,
-      'faces': cube.cells
-    }
-    var beatMesh = {
-      'vertices': beatCube.positions,
-      'normals': beatCube.normals,
-      'faces': beatCube.cells
-    }
-    var guideMesh = {
-      'vertices': guideCube.positions,
-      'normals': guideCube.normals,
-      'faces': guideCube.cells
-    }
-    var sin45 = Math.sin(45 * Math.PI / 180.0);
-    var cos45 = Math.cos(45 * Math.PI / 180.0);
-    var wHalf = 2.23 / 2.0;
-    var w = 2.23 / 17.0;
-    var l = 1.23 / 5.0;
+    var controlParent = new Entity('drumPad_parent', stand);
+    controlParent.Translate([0.0, 2.0, 0.0]);
+    controlParent.Rotate(45, [1.0, 0.0, 0.0]);
     for(var i = 0; i<4; i++) {
       for(var j = 0; j<16; j++) {
-        var x = -wHalf + (w*(j+1));
-        var y = 1.565 + (sin45*(l*(i+1)));
-        var z = 0.435 - (cos45*(l*(i+1)));
-        var pad = new Entity('drumPad_'+i+':'+j, stand);
-        pad.Initialize(this.gl, this.shaderProgram, mesh, this.offPad);
-        pad.Translate([x, y, z]);
-        pad.Rotate(45, [1.0, 0.0, 0.0]);
+        var x = 0.0;
+        var z = 0.23;
+        if (i === 1) z = 0.404;
+        if (i === 2 || i === 3) {
+          x = 0.0533;
+          if (i === 2) x *= -1;
+          z = 0.628;
+        }
+        var r = -22.5 * j;
+        var pad = new Entity('drumPad_'+i+':'+j, controlParent);
+        pad.Initialize(this.gl, this.shaderProgram, Meshes.drumsPads['pad'+i], this.offPad);
+        pad.Rotate(r, [0.0, 1.0, 0.0]);
+        pad.Translate([x, 0.0, -z]);
         this.entities.push(pad);
         this.pads[i+':'+j] = pad;
-        var pickingEntity = new PickingEntity(i+':'+j, pad, [0.08, 0.02, 0.18]);
+        var pickingEntity = new PickingEntity(i+':'+j, pad, [0.05, 0.02, 0.05]);
         this.pickingEntities.push(pickingEntity);
       }
     }
 
-    //Beat indicator and guides
-    var pos = wHalf - (w*8);
-    var beatIndicator = new Entity('BeatIndicator', stand);
+    //Beat indicator
+    var beatIndicator = new Entity('BeatIndicator', controlParent);
     var beatColor = vec3.create();
     vec3.subtract(beatColor, this.drumsColor, [0.13, 0.13, 0.13]);
-    beatIndicator.Initialize(this.gl, this.shaderProgram, beatMesh, beatColor);
-    beatIndicator.Translate([pos, 2.0, 0.0]);
-    beatIndicator.Rotate(45, [1.0, 0.0, 0.0]);
-    beatIndicator.Translate([w*5, 0.0, 0.0]);
+    beatIndicator.Initialize(this.gl, this.shaderProgram, Meshes.drumsPads['beat'], beatColor);
     this.entities.push(beatIndicator);
-
-    var guide1 = new Entity('Guide1', stand);
-    guide1.Initialize(this.gl, this.shaderProgram, guideMesh, [0.2, 0.2, 0.2]);
-    guide1.Translate([w*6.0, 2.0, 0.0]);
-    guide1.Rotate(45, [1.0, 0.0, 0.0]);
-    this.entities.push(guide1);
-
-    var guide2 = new Entity('Guide2', stand);
-    guide2.Initialize(this.gl, this.shaderProgram, guideMesh, [0.2, 0.2, 0.2]);
-    guide2.Translate([w*-2.0, 2.0, 0.0]);
-    guide2.Rotate(45, [1.0, 0.0, 0.0]);
-    this.entities.push(guide2);
   }
 
   CreateBassControl(stand) {
@@ -388,7 +358,11 @@ export default class GraphicEngine {
 
   BeatUpdate(beat, bar, timeBetween, song) {
     var beatIndicator = this.FindEntityByName('BeatIndicator');
-    if(this.instrument === 'drums' || this.instrument === 'bass') {
+    if (this.instrument === 'drums') {
+      beatIndicator.ResetLocalMatrix();
+      beatIndicator.Rotate(-22.5 * beat, [0.0, 1.0, 0.0]);
+    }
+    else if(this.instrument === 'bass') {
       var wHalf = 2.23 / 2.0;
       var w = 2.23 / 17.0;
       var x = -wHalf + (w*(beat+1));
@@ -803,7 +777,7 @@ export default class GraphicEngine {
         var matrix = mat4.create();
         var localM = mat4.create();
         var worldM = mat4.create();
-        mat4.fromTranslation(localM, [0.5, 4.5, -2.0]);
+        mat4.fromTranslation(localM, [0.5, 4.75, -2.0]);
         mat4.multiply(worldM, origin.worldMatrix, localM)
         mat4.multiply(matrix, projMatrix, viewMatrix);
         mat4.multiply(matrix, matrix, worldM);
