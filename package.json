@@ -5,13 +5,18 @@
     "start": "meteor run"
   },
   "dependencies": {
+    "@babel/runtime": "^7.0.0-beta.49",
     "animals": "0.0.3",
     "babel-runtime": "^6.26.0",
+    "eve": "^0.5.4",
+    "gl-matrix": "^2.6.1",
     "meteor-node-stubs": "^0.3.3",
     "octavian": "^2.2.0",
-    "react": "^16.3.2",
+    "primitive-cube": "^2.0.1",
+    "primitive-sphere": "^3.0.0",
+    "react": "^16.4.0",
     "react-addons-pure-render-mixin": "^15.6.2",
-    "react-dom": "^16.3.2",
+    "react-dom": "^16.4.0",
     "soundfont-player": "^0.10.6"
   }
 }

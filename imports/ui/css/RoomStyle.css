@@ -1,26 +1,42 @@
-#Room.drums
+#Room
 {
-  background-color: #DF2230;
+  width: 100vw;
+  height: 100vh;
 }
 
-#Room.bass
+canvas
 {
-  background-color: #107AB3;
+  width: 100%;
+  height: 100%;
 }
 
-#Room.keys
+#Room .crosshair
 {
-  background-color: #11882A;
-}
-
-#Room.solo
-{
-  background-color: #791FC6;
-}
-
-#Room.large
-{
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  top: calc(50vh - 4px);
+  left: calc(50vw - 4px);
   display: grid;
-  grid-template-columns: 100vh calc(100vw - 100vh);
-  grid-template-rows: 40vh 60vh;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-auto-rows: 1fr 1fr 1fr;
+}
+
+#Room .crosshair .chPiece.On
+{
+  background-color: black;
+}
+
+#Room .tag
+{
+  position: absolute;
+  color: #E5E5E5;
+  display: flex;
+  align-items: center;
+  z-index: 10;
+}
+
+#Room .tag h1
+{
+  font-size: 1vw;
 }

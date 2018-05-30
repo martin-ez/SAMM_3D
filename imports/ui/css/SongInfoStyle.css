@@ -1,0 +1,140 @@
+#SongInfo.drums .tab
+{
+  background-color: #DF2230;
+}
+
+#SongInfo.bass .tab
+{
+  background-color: #11882A;
+}
+
+#SongInfo.melody .tab
+{
+  background-color: #791FC6;
+}
+
+#SongInfo h2
+{
+  color: #181818;
+  width: 100%;
+  display: inline;
+  font-size: 2vw;
+}
+
+#SongInfo h1
+{
+  color: #E5E5E5;
+  display: inline;
+  font-size: 2vw;
+}
+
+#SongInfo p, ul
+{
+  font-family: 'Raleway', sans-serif;
+  color: #E5E5E5;
+  font-size: 1.2vw;
+}
+
+#SongInfo ul
+{
+  padding-left: 1vw;
+}
+
+#SongInfo .tab
+{
+  position: absolute;
+  top: 1vh;
+  left: 0;
+  transition-duration: 500ms;
+}
+
+#SongInfo .tab.hide
+{
+  left: -100%;
+}
+
+#SongInfo .tab:not(.hide)
+{
+  left: 0;
+}
+
+#SongInfo .exitBtn
+{
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6vh;
+  height: 6vh;
+  align-items: center;
+  background-color: #181818;
+}
+
+#NavBar .exitBtn img
+{
+  width: 100%;
+}
+
+#SongInfo .buttons .btn
+{
+  padding: 0.2vw 1vw;
+  cursor: pointer;
+  border: 1px solid #181818;
+}
+
+#SongInfo .info
+{
+  padding: 0.5vw 1vw;
+  border: 1px solid #181818;
+}
+
+#SongInfo .Chords
+{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 1vw;
+  margin: 1vw;
+}
+
+#SongInfo .chord
+{
+  border-radius: 5%;
+  background-color: #181818;
+  display: flex;
+}
+
+#SongInfo .chord.active
+{
+  background-color: #E5E5E5;
+}
+
+#SongInfo .chord h2
+{
+  color: #E5E5E5;
+  width: 100%;
+  text-align: center;
+}
+
+#SongInfo .chord.active h2
+{
+  color: #181818;
+}
+
+#SongInfo .help
+{
+  width: 40vw;
+  height: 98vh;
+  overflow-y: scroll;
+  padding: 0.5vw 1vw;
+  border: 1px solid #181818;
+}
+
+#SongInfo .help h2
+{
+  text-align: center;
+}
+
+#SongInfo .help img
+{
+  width: 100%;
+}

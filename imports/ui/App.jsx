@@ -3,8 +3,10 @@ import PropTypes from 'prop-types';
 
 import {Meteor} from 'meteor/meteor';
 import {Session} from 'meteor/session';
-import {createContainer} from 'meteor/react-meteor-data';
+import {withTracker} from 'meteor/react-meteor-data';
 import {SessionDB} from '../api/Session.js';
+
+import SongGenerator from '../engines/sound/SongGenerator.js';
 
 import Home from './Home.jsx';
 import Room from './Room.jsx';
@@ -13,14 +15,16 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.UserLeaving = this.UserLeaving.bind(this);
-    window.addEventListener('beforeunload', this.UserLeaving);
     this.state = {
-      view: "home",
+      view: 'home',
       sessionSong: null,
       list: [],
-      user: null,
       instrumentPlayed: null
     }
+  }
+
+  componentDidMount() {
+    window.addEventListener('beforeunload', this.UserLeaving);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -32,7 +36,7 @@ class App extends Component {
 
   render() {
     return (
-      <div className="app">
+      <div className='app'>
         {this.RenderPage()}
       </div>
     );
@@ -44,11 +48,10 @@ class App extends Component {
         <Home startSession={(v) => this.StartSession(v)} />
       );
     }
-    if (this.state.view === 'room') {
+    else if (this.state.view === 'room') {
       return (
         <Room
         song={this.state.sessionSong.song}
-        user={this.state.user}
         update={(s) => this.UpdateSessionSong(s)}
         instrument={(instr) => this.SetInstrument(instr)}
         leaveSession={() => this.LeaveSession()}/>
@@ -56,10 +59,10 @@ class App extends Component {
     }
   }
 
-  StartSession(userName) {
+  StartSession() {
     if(this.state.sessionSong===null) {
       var end = false;
-      if (this.state.list !== 0) {
+      if (this.state.list.length !== 0) {
         for (var i = 0; i < this.state.list.length && !end; i++) {
           if (this.state.list[i].noUsers < 3) {
             var id = this.state.list[i]._id;
@@ -74,7 +77,6 @@ class App extends Component {
                 var s = SessionDB.findOne(id);
                 this.setState({
                   sessionSong: s,
-                  user: userName,
                   view: 'room'
                 });
               }
@@ -84,7 +86,6 @@ class App extends Component {
         }
       }
       if (!end) {
-        import SongGenerator from '../core/SongGenerator.js';
         var songGenerator = new SongGenerator();
         var song = songGenerator.CreateNewSong();
         var noUsers = 1;
@@ -100,7 +101,6 @@ class App extends Component {
             var s = SessionDB.findOne(response);
             this.setState({
               sessionSong: s,
-              user: userName,
               view: 'room'
             });
           }
@@ -108,7 +108,6 @@ class App extends Component {
       }
     } else {
       this.setState({
-        user: userName,
         view: 'room'
       });
     }
@@ -181,8 +180,8 @@ App.propTypes = {
   songs: PropTypes.array
 };
 
-export default createContainer(() => {
-  Meteor.subscribe('session');
+export default withTracker(props => {
+  const handle = Meteor.subscribe('session');
   var current = Session.get('currentSong');
   if (current === undefined || current === null) {
     var songsInSession = SessionDB.find({}).fetch();
@@ -197,4 +196,4 @@ export default createContainer(() => {
       songs: null
     };
   }
-}, App);
+})(App);

@@ -12,19 +12,9 @@ class Solo extends Component {
   }
 
   render() {
-    var MediaQuery = require('react-responsive');
     return (
-      <div>
-        <MediaQuery query='(min-width: 800px)'>
-          <div id="Solo" className="instrumentUILarge">
-            {this.RenderSolo()}
-          </div>
-        </MediaQuery>
-        <MediaQuery query='(max-width: 800px)'>
-          <div id="Solo" className="instrumentUISmall">
-            {this.RenderSolo()}
-          </div>
-        </MediaQuery>
+      <div id="Solo" className="instrumentUILarge">
+        {this.RenderSolo()}
       </div>
     );
   }

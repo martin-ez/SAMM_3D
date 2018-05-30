@@ -3,26 +3,13 @@ import PropTypes from 'prop-types';
 
 import './css/HomeStyle.css';
 
-const homeLayoutLarge = {
-  display: 'grid',
-  gridTemplateColumns: '55vw 45vw'
-};
-
 class Home extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      nameInput: false,
-    }
-  }
 
   render() {
-    var MediaQuery = require('react-responsive');
     return (
-      <div id="Home" className="page" style={homeLayoutLarge}>
+      <div id="Home" className="page">
         {this.RenderLogo()}
         {this.RenderText()}
-        {this.state.nameInput?this.RenderNameInput():() =>{return;}}
       </div>
     );
   }
@@ -36,19 +23,13 @@ class Home extends Component {
           </div>
           <div className="ctaContainer">
             <button className="ctaButton"
-              onClick={() => this.DisplayInput()}>
-              <h1 className="text fwThin">Make Music</h1>
+              onClick={() => this.props.startSession()}>
+              <h2>Make Music</h2>
             </button>
           </div>
         </div>
       </div>
     );
-  }
-
-  DisplayInput() {
-    this.setState({
-      nameInput: true
-    });
   }
 
   RenderText() {
@@ -68,17 +49,13 @@ class Home extends Component {
             <h2>How can I use it?</h2>
             <br/>
             <p>
-              Click the "Make Music" button to start creating. You can also log in
-              to be able to save songs.
+              Click the "Make Music" button to start creating. Choose your
+              favorite instrument and create a pattern in your sequencer.
             </p>
           </span>
         </div>
       </div>
     );
-  }
-
-  RenderNameInput() {
-
   }
 }
 
