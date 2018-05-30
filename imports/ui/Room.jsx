@@ -19,6 +19,7 @@ class Room extends Component {
     this.HandleClick = this.HandleClick.bind(this);
     this.Render = this.Render.bind(this);
     this.UpdatePattern = this.UpdatePattern.bind(this);
+    this.PauseSong = this.PauseSong.bind(this);
     this.canvasRef = React.createRef();
     this.tags = {};
     this.sceneReady = false;
@@ -116,6 +117,7 @@ class Room extends Component {
       this.updateWindowDimensions();
       this.EngagePointerLock(this.canvasRef);
       this.state.graphicEngine.SetContext(this.canvasRef);
+      this.state.graphicEngine.SetPauseCallback(this.PauseSong);
       this.state.graphicEngine.CreateScene(this.state.instrument);
       this.Render();
       this.sceneReady = true;
@@ -248,7 +250,8 @@ class Room extends Component {
     var p = !this.state.playing;
     this.setState({
       playing: p
-    })
+    });
+    return p;
   }
 }
 

@@ -27,7 +27,6 @@ export default class GraphicEngine {
       this.pickingEntities = [];
       this.pads = {};
       this.melodyBarPads = {};
-      this.bassBars = {};
       this.drumsAnimators = {};
       this.bassAnimator = null;
       this.melodyAnimator = null;
@@ -38,7 +37,10 @@ export default class GraphicEngine {
       this.bassColor = [0.07, 0.53, 0.16];
       this.melodyColor = [0.47, 0.12, 0.78];
       this.blackColor = [0.1, 0.1, 0.1];
+      this.playingColor = [0.071, 0.478, 0.702];
+      this.pauseColor = [0.0313, 0.2313, 0.3372];
       this.tags = {};
+      this.pauseCallback = null;
       this.camera = new Camera(60.0, 1.0);
       this.size = {
         width: 0,
@@ -60,6 +62,10 @@ export default class GraphicEngine {
 
   SetTags(tags) {
     this.tags = tags;
+  }
+
+  SetPauseCallback(callback) {
+    this.pauseCallback = callback;
   }
 
   CreateScene(instrument) {
@@ -84,6 +90,7 @@ export default class GraphicEngine {
     });
 
     //Create synth stands
+    var ownStand = null;
     var synthStandDrums = new Entity('drums_synth', this.origin);
     synthStandDrums.Initialize(this.gl, this.shaderProgram, Meshes.drums_stand, this.blackColor);
     synthStandDrums.Translate([13.476, 0.0, 0.0]);
@@ -92,15 +99,17 @@ export default class GraphicEngine {
     var frontStandDrums = new Entity('drums_front', synthStandDrums);
     frontStandDrums.Initialize(this.gl, this.shaderProgram, Meshes.stand_front, this.blackColor);
     this.entities.push(frontStandDrums);
+    if (this.instrument === 'drums') ownStand = synthStandDrums;
 
     var synthStandBass = new Entity('bass_synth', this.origin);
-    synthStandBass.Initialize(this.gl, this.shaderProgram, Meshes.stand, this.blackColor);
+    synthStandBass.Initialize(this.gl, this.shaderProgram, Meshes.melody_stand, this.blackColor);
     synthStandBass.Translate([-6.74, 0.0, -11.67]);
     synthStandBass.Rotate(210, [0.0, 1.0, 0.0]);
     this.entities.push(synthStandBass);
     var frontStandBass = new Entity('bass_front', synthStandBass);
     frontStandBass.Initialize(this.gl, this.shaderProgram, Meshes.stand_front, this.blackColor);
     this.entities.push(frontStandBass);
+    if (this.instrument === 'bass') ownStand = synthStandBass;
 
     var synthStandMelody = new Entity('melody_synth', this.origin);
     synthStandMelody.Initialize(this.gl, this.shaderProgram, Meshes.melody_stand, this.blackColor);
@@ -110,6 +119,21 @@ export default class GraphicEngine {
     var frontStandMelody = new Entity('melody_front', synthStandMelody);
     frontStandMelody.Initialize(this.gl, this.shaderProgram, Meshes.stand_front, this.blackColor);
     this.entities.push(frontStandMelody);
+    if (this.instrument === 'melody') ownStand = synthStandMelody;
+
+    //Pause button
+    var pauseArm = new Entity('stand_arm', ownStand);
+    pauseArm.Initialize(this.gl, this.shaderProgram, Meshes.stand_arm, this.blackColor);
+    this.entities.push(pauseArm);
+    var pauseButton = new Entity('pause', ownStand);
+    pauseButton.Initialize(this.gl, this.shaderProgram, Meshes.square_pad, this.playingColor);
+    pauseButton.Translate([-1.45, 1.65, 1.32]);
+    pauseButton.Rotate(-45, [0.0, 0.0, 1.0]);
+    pauseButton.Rotate(90, [0.0, 1.0, 0.0]);
+    this.entities.push(pauseButton);
+    var pausePicking = new PickingEntity('pause', pauseButton, [0.2, 0.02, 0.25]);
+    this.pickingEntities.push(pausePicking);
+
 
     //Setup camera and synth controls
     switch(instrument) {
@@ -220,10 +244,11 @@ export default class GraphicEngine {
   }
 
   CreateBassControl(stand) {
-    var cube = PrimitiveCube(0.08, 0.1, 0.04, 1, 1, 1);
-    var beatCube = PrimitiveCube(0.131, 0.05, 1.2, 1, 1, 1);
-    var guideCube = PrimitiveCube(0.524, 0.02, 1.2, 1, 1, 1);
-    var bar = PrimitiveCube(1, 1, 1, 1, 1, 1);
+    var wHalf = 1.23 / 2.0;
+    var w = 1.23 / 17.0;
+    var l = 1.23 / 10.0;
+    var cube = PrimitiveCube(0.035, 0.05, l, 1, 1, 1);
+    var beatCube = PrimitiveCube(l-0.04, 0.025, 1.2, 1, 1, 1);
     var mesh = {
       'vertices': cube.positions,
       'normals': cube.normals,
@@ -234,49 +259,21 @@ export default class GraphicEngine {
       'normals': beatCube.normals,
       'faces': beatCube.cells
     }
-    var guideMesh = {
-      'vertices': guideCube.positions,
-      'normals': guideCube.normals,
-      'faces': guideCube.cells
-    }
-    var barMesh = {
-      'vertices': bar.positions,
-      'normals': bar.normals,
-      'faces': bar.cells
-    }
-    var sin45 = Math.sin(45 * Math.PI / 180.0);
-    var cos45 = Math.cos(45 * Math.PI / 180.0);
-    var wHalf = 2.23 / 2.0;
-    var w = 2.23 / 17.0;
-    var l = 1.23 / 10.0;
     for(var i = 0; i<9; i++) {
       for(var j = 0; j<16; j++) {
         var x = -wHalf + (w*(j+1));
-        var y = 1.565 + (sin45*(l*(i+1)));
-        var z = 0.435 - (cos45*(l*(i+1)));
+        var y = wHalf - (l*(i+1));
         var pad = new Entity('bassPad_'+i+':'+j, stand);
         pad.Initialize(this.gl, this.shaderProgram, mesh, this.offPad);
-        pad.Translate([x, y, z]);
+        pad.Translate([0.0, 2.0, 0.0]);
         pad.Rotate(45, [1.0, 0.0, 0.0]);
+        pad.Translate([x, 0.0, y]);
         this.entities.push(pad);
         this.pads[i+':'+j] = pad;
         var value = i*0.125;
-        var pickingEntity = new PickingEntity(value+':'+j, pad, [0.08, 0.02, 0.04]);
+        var pickingEntity = new PickingEntity(value+':'+j, pad, [0.04, 0.02, 0.05]);
         this.pickingEntities.push(pickingEntity);
       }
-    }
-
-    //Pitch indicator
-    for(var k = 0; k<16; k++) {
-      var bassBar = new Entity('bassBar_'+k, stand);
-      var x = -wHalf + (w*(k+1));
-      var y = 2;
-      var z = 0;
-      bassBar.Initialize(this.gl, this.shaderProgram, barMesh, this.bassColor);
-      bassBar.Translate([x, y, z]);
-      bassBar.Rotate(45, [1.0, 0.0, 0.0]);
-      this.entities.push(bassBar);
-      this.bassBars[k+':'] = bassBar;
     }
 
     //Beat indicator and guides
@@ -289,18 +286,6 @@ export default class GraphicEngine {
     beatIndicator.Rotate(45, [1.0, 0.0, 0.0]);
     beatIndicator.Translate([w*5, 0.0, 0.0]);
     this.entities.push(beatIndicator);
-
-    var guide1 = new Entity('Guide1', stand);
-    guide1.Initialize(this.gl, this.shaderProgram, guideMesh, [0.2, 0.2, 0.2]);
-    guide1.Translate([w*6.0, 2.0, 0.0]);
-    guide1.Rotate(45, [1.0, 0.0, 0.0]);
-    this.entities.push(guide1);
-
-    var guide2 = new Entity('Guide2', stand);
-    guide2.Initialize(this.gl, this.shaderProgram, guideMesh, [0.2, 0.2, 0.2]);
-    guide2.Translate([w*-2.0, 2.0, 0.0]);
-    guide2.Rotate(45, [1.0, 0.0, 0.0]);
-    this.entities.push(guide2);
   }
 
   CreateMelodyControl(stand) {
@@ -363,8 +348,8 @@ export default class GraphicEngine {
       beatIndicator.Rotate(-22.5 * beat, [0.0, 1.0, 0.0]);
     }
     else if(this.instrument === 'bass') {
-      var wHalf = 2.23 / 2.0;
-      var w = 2.23 / 17.0;
+      var wHalf = 1.23 / 2.0;
+      var w = 1.23 / 17.0;
       var x = -wHalf + (w*(beat+1));
       beatIndicator.ResetLocalMatrix();
       beatIndicator.Translate([x, 2.0, 0.0]);
@@ -554,28 +539,20 @@ export default class GraphicEngine {
         }
         break;
       case 'bass':
-        var sin45 = Math.sin(45 * Math.PI / 180.0);
-        var cos45 = Math.cos(45 * Math.PI / 180.0);
-        var wHalf = 2.23 / 2.0;
-        var w = 2.23 / 17.0;
-        var l = 1.23 / 10.0;
         for (var i = 0; i<9; i++) {
           for (var j = 0; j<16; j++) {
             var value = pattern[j];
-            if (value === '-' || value !== i*0.125) {
+            if (value === '-') {
               this.pads[i+':'+j].meshColor = this.offPad;
             }
             else {
-              var s = (Math.abs(4 - i) + 1)*l - (l-0.04);
-              var c = ((6+i)*l)/2.0;
-              var x = -wHalf + (w*(j+1));
-              var y = 1.565 + (sin45*c);
-              var z = 0.435 - (cos45*c);
-              this.bassBars[j+':'].ResetLocalMatrix();
-              this.bassBars[j+':'].Translate([x, y, z]);
-              this.bassBars[j+':'].Rotate(45, [1.0, 0.0, 0.0]);
-              this.bassBars[j+':'].Scale([0.09, 0.07, s]);
-              this.pads[i+':'+j].meshColor = this.bassColor;
+              var v = value * 8;
+              if ((v <= 4 && i>=v && i<=4) || (v >= 4 && i<=v && i>=4)) {
+                this.pads[i+':'+j].meshColor = this.bassColor;
+              }
+              else {
+                this.pads[i+':'+j].meshColor = this.offPad;
+              }
             }
           }
         }
@@ -656,8 +633,14 @@ export default class GraphicEngine {
     }
     if (index !== -1) {
       var code = collisions[index].code;
-      var pad = code.split(':');
-      this.UpdatePattern(pad, song, callback);
+      if (code === 'pause') {
+        var p = this.pauseCallback();
+        collisions[index].entity.meshColor = p? this.playingColor : this.pauseColor;
+      }
+      else {
+        var pad = code.split(':');
+        this.UpdatePattern(pad, song, callback);
+      }
     }
   }
 
