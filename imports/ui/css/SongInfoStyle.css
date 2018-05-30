@@ -122,7 +122,8 @@
 
 #SongInfo .help
 {
-  width: 33vw;
+  width: 40vw;
+  height: 98vh;
   overflow-y: scroll;
   padding: 0.5vw 1vw;
   border: 1px solid #181818;
@@ -131,4 +132,9 @@
 #SongInfo .help h2
 {
   text-align: center;
+}
+
+#SongInfo .help img
+{
+  width: 100%;
 }

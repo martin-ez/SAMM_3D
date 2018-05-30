@@ -83,8 +83,12 @@ class SongInfo extends Component {
           <div className='specificHelp'>
             <h2>How to use the drums</h2>
             <br/>
+            <img src="howto/drums_howto.svg" alt="Drums module instructions"/>
             <p>
-
+              The drum module presents a 16 step sequencer in a circular pattern.
+              You have three different sounds: Kick, Snare and Hihat, in each step,
+              you can choose to activate each sound. The hihat can be close or open,
+              but not both.
             </p>
             <br/>
             <h2>What patterns should I make?</h2>
@@ -108,8 +112,12 @@ class SongInfo extends Component {
           <div className='specificHelp'>
             <h2>How to use the bass</h2>
             <br/>
+            <img src="howto/bass_howto.svg" alt="Bass module instructions"/>
             <p>
-
+              With the bass, you have a 16 step sequence that repeats every bar.
+              For each step you can choose how high or low to play the note clicking
+              along the line of the step. You can also choose to turn notes off
+              by clicking the line twice.
             </p>
             <br/>
             <h2>What patterns should I make?</h2>
@@ -134,8 +142,13 @@ class SongInfo extends Component {
           <div className='specificHelp'>
             <h2>How to use the melody</h2>
             <br/>
+            <img src="howto/melody_howto.svg" alt="Melody module instructions"/>
             <p>
-
+              The melody module presents 4 pages, one per bar, to make an 8 step
+              melodic line per page. You can activate a page pressing the pads
+              on the right. Once you are on the page you want, you can write the
+              melody, choosing a note for each step. You can also choose to leave
+              a step empty.
             </p>
             <br/>
             <h2>What patterns should I make?</h2>
